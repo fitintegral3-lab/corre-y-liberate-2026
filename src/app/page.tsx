@@ -169,15 +169,18 @@ export default function RebuiltLanding() {
          ========================================================================= */}
       <section 
         id="inicio" 
-        className="relative bg-cover bg-right lg:bg-center overflow-hidden min-h-[660px] lg:min-h-[740px] flex items-center"
+        className="relative bg-cover bg-[position:18%_center] sm:bg-[position:25%_center] lg:bg-center overflow-hidden min-h-[640px] lg:min-h-[740px] flex items-center"
         style={{ backgroundImage: "url('/backgrounds/bg_hero.jpg')" }}
       >
+        {/* Capa de contraste y legibilidad optimizada para celular */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20 sm:from-black/60 sm:to-transparent lg:hidden pointer-events-none z-10" />
+
         {/* Matriz de puntos negros sutiles en la zona naranja detrás del título y distancias */}
         <div 
-          className="absolute inset-0 pointer-events-none z-10"
+          className="absolute inset-0 pointer-events-none z-10 opacity-35"
           style={{
-            backgroundImage: 'radial-gradient(rgba(0, 0, 0, 0.28) 1.5px, transparent 1.5px)',
-            backgroundSize: '22px 22px',
+            backgroundImage: 'radial-gradient(rgba(0, 0, 0, 0.45) 1.5px, transparent 1.5px)',
+            backgroundSize: '15px 15px',
             maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0) 72%)',
             WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0) 72%)',
           }}
@@ -186,11 +189,11 @@ export default function RebuiltLanding() {
         <div className="max-w-[1366px] mx-auto w-full px-4 sm:px-10 py-12 lg:py-16 relative z-20">
           <div className="max-w-2xl text-white space-y-6">
             <div>
-              <h1 className="font-athletic text-7xl sm:text-8xl lg:text-[108px] text-white drop-shadow-md leading-[0.85]">
+              <h1 className="font-athletic text-6xl sm:text-8xl lg:text-[108px] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] leading-[0.85]">
                 CORRE Y <br />
                 LIBÉRATE 2026
               </h1>
-              <p className="mt-4 text-base sm:text-xl font-athletic-bold uppercase tracking-wider text-white/95">
+              <p className="mt-4 text-base sm:text-xl font-athletic-bold uppercase tracking-wider text-white/95 drop-shadow-md">
                 CADA KILÓMETRO <span className="underline decoration-white/50">PROTEGE, INSPIRA Y TRANSFORMA</span>
               </p>
             </div>
@@ -479,18 +482,18 @@ export default function RebuiltLanding() {
          ========================================================================= */}
       <section 
         id="kit" 
-        className="relative bg-cover bg-center text-white overflow-hidden"
+        className="relative bg-cover bg-[position:65%_center] lg:bg-center text-white overflow-hidden"
         style={{ backgroundImage: "url('/backgrounds/bg_kit.jpg')" }}
       >
-        <div className="max-w-[1366px] mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[520px] items-stretch">
+        <div className="max-w-[1366px] mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[520px] items-stretch p-4 sm:p-0">
           <div className="lg:col-span-6" />
 
-          <div className="lg:col-span-6 p-8 sm:p-12 lg:p-16 flex flex-col justify-center space-y-6">
+          <div className="lg:col-span-6 p-6 sm:p-12 lg:p-16 bg-black/65 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none rounded-3xl lg:rounded-none border border-white/10 lg:border-none flex flex-col justify-center space-y-6 my-4 lg:my-0">
             <div>
               <span className="font-athletic-bold text-sm sm:text-base tracking-widest text-[#cc420d] block">
                 TODO LISTO PARA TU CARRERA
               </span>
-              <h2 className="font-athletic text-5xl sm:text-6xl text-white leading-tight mt-1">
+              <h2 className="font-athletic text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mt-1">
                 CORRE Y LIBÉRATE INCLUYE <br />
                 MUCHO MÁS QUE KILÓMETROS.
               </h2>
@@ -637,13 +640,13 @@ export default function RebuiltLanding() {
           SECTION 07: PROPÓSITO SOCIAL
          ========================================================================= */}
       <section 
-        className="relative bg-cover bg-center text-white overflow-hidden"
+        className="relative bg-cover bg-[position:35%_center] lg:bg-center text-white overflow-hidden"
         style={{ backgroundImage: "url('/backgrounds/bg_proposito.jpg')" }}
       >
-        <div className="max-w-[1366px] mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[460px] items-stretch">
+        <div className="max-w-[1366px] mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[460px] items-stretch p-4 sm:p-0">
           
-          <div className="lg:col-span-6 p-8 sm:p-12 lg:p-16 flex flex-col justify-center space-y-6">
-            <h2 className="font-athletic text-5xl sm:text-7xl text-white leading-[0.92]">
+          <div className="lg:col-span-6 p-6 sm:p-12 lg:p-16 bg-black/70 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none rounded-3xl lg:rounded-none border border-white/10 lg:border-none flex flex-col justify-center space-y-6 my-4 lg:my-0">
+            <h2 className="font-athletic text-4xl sm:text-6xl lg:text-7xl text-white leading-[0.92]">
               CORREMOS POR ALGO <br />
               QUE VA MÁS ALLÁ <br />
               DE LA META.
