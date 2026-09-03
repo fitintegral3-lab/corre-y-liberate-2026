@@ -255,20 +255,29 @@ export default function RebuiltLanding() {
       </section>
 
       {/* =========================================================================
-          SECTION 02: PREMIACIÓN ECONÓMICA (GRADIENTE CÁLIDO/ENÉRGICO + NÚMEROS CENTRADOS)
+          SECTION 02: PREMIACIÓN ECONÓMICA (GRADIENTE CÁLIDO/ENÉRGICO + NÚMEROS CENTRADOS + PUNTOS NEGROS)
          ========================================================================= */}
       <section 
         id="premiacion" 
         className="relative py-20 px-4 sm:px-8 text-white overflow-hidden bg-cover bg-center"
         style={{ 
-          backgroundImage: "radial-gradient(ellipse 75% 65% at 50% 45%, rgba(255, 190, 24, 0.42) 0%, rgba(235, 94, 15, 0.48) 42%, rgba(180, 48, 5, 0.72) 75%, rgba(25, 6, 2, 0.88) 100%), url('/backgrounds/bg_premiacion.jpg')" 
+          backgroundImage: "radial-gradient(ellipse 85% 75% at 50% 40%, rgba(255, 205, 30, 0.45) 0%, rgba(245, 105, 10, 0.45) 45%, rgba(195, 50, 0, 0.65) 80%, rgba(30, 8, 2, 0.85) 100%), url('/backgrounds/bg_premiacion.jpg')" 
         }}
       >
+        {/* Patrón de puntos negros característico (Dot Matrix / Halftone) bien visible */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-35 z-0"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(0, 0, 0, 0.7) 1.5px, transparent 1.5px)',
+            backgroundSize: '15px 15px'
+          }}
+        />
+
         {/* Glow cálido y enérgico de naranja a amarillo en el centro */}
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none z-0"
           style={{
-            background: 'radial-gradient(circle at 50% 42%, rgba(255, 215, 64, 0.24) 0%, rgba(255, 107, 0, 0.18) 45%, transparent 75%)',
+            background: 'radial-gradient(circle at 50% 38%, rgba(255, 220, 70, 0.3) 0%, rgba(255, 115, 0, 0.2) 50%, transparent 80%)',
           }}
         />
 
@@ -725,19 +734,25 @@ export default function RebuiltLanding() {
             </a>
           </div>
 
-          {/* Copyright y Badge Desarrollado por Scibaru AI */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2">
-            <p className="text-xs text-neutral-400 font-medium">
-              © 2026 Corre y Libérate · 2ª Edición Integral Fit · Jamundí, Valle del Cauca. Todos los derechos reservados.
-            </p>
-            <span className="hidden sm:inline text-neutral-700">|</span>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs text-neutral-300 shadow-md hover:border-[#cc420d]/60 hover:text-white transition-all duration-300 group">
-              <Sparkles size={13} className="text-[#cc420d] group-hover:text-[#ff6b35] transition-colors group-hover:rotate-12 duration-300" />
-              <span className="tracking-wide text-[11px] sm:text-xs">
-                Desarrollado por <span className="font-bold text-white group-hover:text-[#ff6b35] transition-colors">Scibaru AI</span>
-              </span>
+            {/* Copyright y Badge Desarrollado por Scibaru AI */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2">
+              <p className="text-xs text-neutral-400 font-medium">
+                © 2026 Corre y Libérate · 2ª Edición Integral Fit · Jamundí, Valle del Cauca. Todos los derechos reservados.
+              </p>
+              <span className="hidden sm:inline text-neutral-700">|</span>
+              <a
+                href="https://scibaru-ai.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs text-neutral-300 shadow-md hover:border-[#ff7a00] hover:text-white hover:scale-105 transition-all duration-300 group cursor-pointer"
+                aria-label="Sitio web de Scibaru AI"
+              >
+                <Sparkles size={13} className="text-[#ff7a00] group-hover:text-[#ffaa00] transition-colors group-hover:rotate-12 duration-300" />
+                <span className="tracking-wide text-[11px] sm:text-xs">
+                  Desarrollado por <span className="font-bold text-white group-hover:text-[#ffaa00] transition-colors">Scibaru AI</span> ↗
+                </span>
+              </a>
             </div>
-          </div>
 
         </div>
       </footer>
