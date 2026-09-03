@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'MyriadPro';
+  src: url('/fonts/MyriadPro-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --naranja-oscuro: #cc420d;
+  --morado-oscuro: #381247;
+  --gris: #ababb2;
+  --blanco: #ffffff;
+  --negro: #000000;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+body {
+  background-color: #ffffff;
+  color: #111111;
+  font-family: 'MyriadPro', 'Montserrat', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Authentic Athletic Editorial Typography matching the client's design */
+.font-athletic {
+  font-family: 'Barlow', 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+}
+
+.font-athletic-bold {
+  font-family: 'Barlow', 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+.font-athletic-semibold {
+  font-family: 'Barlow', 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+}
+
+.font-body {
+  font-family: 'MyriadPro', 'Montserrat', -apple-system, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #111;
+}
+::-webkit-scrollbar-thumb {
+  background: #cc420d;
+  border-radius: 4px;
+}
