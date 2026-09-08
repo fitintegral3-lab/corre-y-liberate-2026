@@ -83,7 +83,7 @@ const categories = [
   { name: '5K', sub: '5 kilómetros' },
   { name: '7K', sub: '7 kilómetros' },
   { name: '10K', sub: '10 kilómetros' },
-  { name: '3K INFANTIL', sub: '5 kilómetros · (7 a 12 años)' },
+  { name: '3K INFANTIL', sub: '3 kilómetros · (7 a 12 años)' },
 ];
 
 const kitItems = [
