@@ -639,62 +639,62 @@ export default function RebuiltLanding() {
       </section>
 
       {/* =========================================================================
-          SECTION: PATROCINADORES (RECUADRO BLANCO CON TÍTULO Y 4 LOGOS)
+          SECTION: PATROCINADORES (RECUADRO BLANCO CON TÍTULO Y 4 LOGOS GRANDES)
          ========================================================================= */}
-      <section id="patrocinadores" className="bg-white py-16 sm:py-20 px-4 sm:px-8 text-center border-y border-neutral-100 relative z-20">
-        <div className="max-w-[1366px] mx-auto space-y-10">
+      <section id="patrocinadores" className="bg-white py-20 sm:py-28 px-4 sm:px-8 text-center border-y border-neutral-100 relative z-20">
+        <div className="max-w-[1366px] mx-auto space-y-12 sm:space-y-16">
           <div>
             <span className="font-athletic-bold text-xs sm:text-sm tracking-widest text-[#cc420d] block">
               ALIADOS Y APOYOS OFICIALES
             </span>
-            <h2 className="font-athletic text-5xl sm:text-7xl text-neutral-950 mt-1">
+            <h2 className="font-athletic text-5xl sm:text-7xl lg:text-8xl text-neutral-950 mt-1">
               PATROCINADORES
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 items-center justify-items-center max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-14 items-center justify-items-center max-w-6xl mx-auto">
             
             {/* Alcaldía de Jamundí */}
-            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+            <div className="group flex items-center justify-center p-3 sm:p-4 h-36 sm:h-48 lg:h-56 w-full max-w-[280px] transition-transform duration-300 hover:scale-108">
               <Image
                 src="/sponsors/alcaldia_jamundi.png"
                 alt="Alcaldía de Jamundí"
-                width={200}
-                height={120}
-                className="max-h-24 sm:max-h-28 w-auto object-contain"
+                width={360}
+                height={240}
+                className="max-h-28 sm:max-h-40 lg:max-h-48 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
 
             {/* IMDERE */}
-            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+            <div className="group flex items-center justify-center p-3 sm:p-4 h-36 sm:h-48 lg:h-56 w-full max-w-[280px] transition-transform duration-300 hover:scale-108">
               <Image
                 src="/sponsors/imdere.png"
                 alt="IMDERE Jamundí"
-                width={200}
-                height={120}
-                className="max-h-24 sm:max-h-28 w-auto object-contain"
+                width={360}
+                height={240}
+                className="max-h-28 sm:max-h-40 lg:max-h-48 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
 
             {/* Alma Casa de Encuentros */}
-            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+            <div className="group flex items-center justify-center p-3 sm:p-4 h-36 sm:h-48 lg:h-56 w-full max-w-[280px] transition-transform duration-300 hover:scale-108">
               <Image
                 src="/sponsors/alma.png"
                 alt="Alma Casa de Encuentros"
-                width={200}
-                height={120}
-                className="max-h-24 sm:max-h-28 w-auto object-contain"
+                width={360}
+                height={240}
+                className="max-h-28 sm:max-h-40 lg:max-h-48 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
 
             {/* Electrolife */}
-            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+            <div className="group flex items-center justify-center p-3 sm:p-4 h-36 sm:h-48 lg:h-56 w-full max-w-[280px] transition-transform duration-300 hover:scale-108">
               <Image
                 src="/sponsors/electrolife.png"
                 alt="Electrolife"
-                width={200}
-                height={120}
-                className="max-h-24 sm:max-h-28 w-auto object-contain"
+                width={360}
+                height={240}
+                className="max-h-24 sm:max-h-36 lg:max-h-40 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
             </div>
 
