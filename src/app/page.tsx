@@ -117,12 +117,13 @@ export default function RebuiltLanding() {
             />
           </a>
 
-          <nav className="hidden lg:flex items-center gap-10">
+          <nav className="hidden lg:flex items-center gap-9">
             <a href="#distancias" className="text-xs font-athletic-bold tracking-wider text-neutral-800 hover:text-[#cc420d] transition-colors">Distancias</a>
             <a href="#precios" className="text-xs font-athletic-bold tracking-wider text-neutral-800 hover:text-[#cc420d] transition-colors">Precios</a>
             <a href="#premiacion" className="text-xs font-athletic-bold tracking-wider text-neutral-800 hover:text-[#cc420d] transition-colors">Premiación</a>
             <a href="#kit" className="text-xs font-athletic-bold tracking-wider text-neutral-800 hover:text-[#cc420d] transition-colors">Kit</a>
             <a href="#como-llegar" className="text-xs font-athletic-bold tracking-wider text-neutral-800 hover:text-[#cc420d] transition-colors">Como llegar</a>
+            <a href="#patrocinadores" className="text-xs font-athletic-bold tracking-wider text-neutral-800 hover:text-[#cc420d] transition-colors">Patrocinadores</a>
           </nav>
 
           <div className="hidden lg:flex items-center">
@@ -152,6 +153,7 @@ export default function RebuiltLanding() {
             <a href="#premiacion" onClick={() => setMobileMenuOpen(false)} className="text-base font-athletic-bold text-neutral-800 hover:text-[#cc420d] transition-colors">Premiación</a>
             <a href="#kit" onClick={() => setMobileMenuOpen(false)} className="text-base font-athletic-bold text-neutral-800 hover:text-[#cc420d] transition-colors">Kit</a>
             <a href="#como-llegar" onClick={() => setMobileMenuOpen(false)} className="text-base font-athletic-bold text-neutral-800 hover:text-[#cc420d] transition-colors">Como llegar</a>
+            <a href="#patrocinadores" onClick={() => setMobileMenuOpen(false)} className="text-base font-athletic-bold text-neutral-800 hover:text-[#cc420d] transition-colors">Patrocinadores</a>
             <a
               href={REGISTRATION_URL}
               target="_blank"
@@ -637,6 +639,70 @@ export default function RebuiltLanding() {
       </section>
 
       {/* =========================================================================
+          SECTION: PATROCINADORES (RECUADRO BLANCO CON TÍTULO Y 4 LOGOS)
+         ========================================================================= */}
+      <section id="patrocinadores" className="bg-white py-16 sm:py-20 px-4 sm:px-8 text-center border-y border-neutral-100 relative z-20">
+        <div className="max-w-[1366px] mx-auto space-y-10">
+          <div>
+            <span className="font-athletic-bold text-xs sm:text-sm tracking-widest text-[#cc420d] block">
+              ALIADOS Y APOYOS OFICIALES
+            </span>
+            <h2 className="font-athletic text-5xl sm:text-7xl text-neutral-950 mt-1">
+              PATROCINADORES
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 items-center justify-items-center max-w-5xl mx-auto">
+            
+            {/* Alcaldía de Jamundí */}
+            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+              <Image
+                src="/sponsors/alcaldia_jamundi.png"
+                alt="Alcaldía de Jamundí"
+                width={200}
+                height={120}
+                className="max-h-24 sm:max-h-28 w-auto object-contain"
+              />
+            </div>
+
+            {/* IMDERE */}
+            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+              <Image
+                src="/sponsors/imdere.png"
+                alt="IMDERE Jamundí"
+                width={200}
+                height={120}
+                className="max-h-24 sm:max-h-28 w-auto object-contain"
+              />
+            </div>
+
+            {/* Alma Casa de Encuentros */}
+            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+              <Image
+                src="/sponsors/alma.png"
+                alt="Alma Casa de Encuentros"
+                width={200}
+                height={120}
+                className="max-h-24 sm:max-h-28 w-auto object-contain"
+              />
+            </div>
+
+            {/* Electrolife */}
+            <div className="flex items-center justify-center p-3 h-28 sm:h-36 w-full max-w-[220px] transition-transform duration-300 hover:scale-110">
+              <Image
+                src="/sponsors/electrolife.png"
+                alt="Electrolife"
+                width={200}
+                height={120}
+                className="max-h-24 sm:max-h-28 w-auto object-contain"
+              />
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
           SECTION 07: PROPÓSITO SOCIAL
          ========================================================================= */}
       <section 
@@ -700,6 +766,7 @@ export default function RebuiltLanding() {
               <a href="#premiacion" className="font-athletic-bold text-base sm:text-lg tracking-wider text-neutral-300 hover:text-white transition-colors">Premiación</a>
               <a href="#kit" className="font-athletic-bold text-base sm:text-lg tracking-wider text-neutral-300 hover:text-white transition-colors">Kit</a>
               <a href="#como-llegar" className="font-athletic-bold text-base sm:text-lg tracking-wider text-neutral-300 hover:text-white transition-colors">Como llegar</a>
+              <a href="#patrocinadores" className="font-athletic-bold text-base sm:text-lg tracking-wider text-neutral-300 hover:text-white transition-colors">Patrocinadores</a>
             </nav>
           </div>
 
