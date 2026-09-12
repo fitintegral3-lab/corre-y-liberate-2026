@@ -103,6 +103,7 @@ const sponsors = [
   { src: '/sponsors/patrocinador_5.png', alt: 'Patrocinador Oficial' },
   { src: '/sponsors/patrocinador_6.png', alt: 'Patrocinador Oficial' },
   { src: '/sponsors/patrocinador_7.png', alt: 'Patrocinador Oficial' },
+  { src: '/sponsors/patrocinador_8.png', alt: 'Patrocinador Oficial' },
 ];
 
 export default function RebuiltLanding() {
