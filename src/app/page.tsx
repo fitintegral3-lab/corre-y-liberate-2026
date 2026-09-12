@@ -95,6 +95,16 @@ const kitItems = [
   { icon: '/icons/icon_hidratacion.png', label: 'Hidratación' },
 ];
 
+const sponsors = [
+  { src: '/sponsors/alcaldia_jamundi.png', alt: 'Alcaldía de Jamundí' },
+  { src: '/sponsors/imdere.png', alt: 'IMDERE Jamundí' },
+  { src: '/sponsors/alma.png', alt: 'Alma Casa de Encuentros' },
+  { src: '/sponsors/electrolife.png', alt: 'Electrolife' },
+  { src: '/sponsors/patrocinador_5.png', alt: 'Patrocinador Oficial' },
+  { src: '/sponsors/patrocinador_6.png', alt: 'Patrocinador Oficial' },
+  { src: '/sponsors/patrocinador_7.png', alt: 'Patrocinador Oficial' },
+];
+
 export default function RebuiltLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -639,9 +649,9 @@ export default function RebuiltLanding() {
       </section>
 
       {/* =========================================================================
-          SECTION: PATROCINADORES (RECUADRO BLANCO AMPLIO, TÍTULO PROPORCIONADO Y LOGOS MÁS GRANDES)
+          SECTION: PATROCINADORES (RECUADRO BLANCO AMPLIO, TÍTULO PROPORCIONADO Y LOGOS GRANDES)
          ========================================================================= */}
-      <section id="patrocinadores" className="bg-white py-24 sm:py-32 lg:py-36 px-4 sm:px-8 text-center border-y border-neutral-100 relative z-20">
+      <section id="patrocinadores" className="bg-white py-20 sm:py-28 lg:py-32 px-4 sm:px-8 text-center border-y border-neutral-100 relative z-20">
         <div className="max-w-[1366px] mx-auto space-y-12 sm:space-y-16">
           <div>
             <span className="font-athletic-bold text-xs sm:text-sm tracking-widest text-[#cc420d] block">
@@ -652,52 +662,21 @@ export default function RebuiltLanding() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-14 items-center justify-items-center max-w-7xl mx-auto">
-            
-            {/* Alcaldía de Jamundí */}
-            <div className="group flex items-center justify-center p-2 sm:p-4 h-44 sm:h-56 lg:h-64 w-full max-w-[320px] transition-transform duration-300 hover:scale-108">
-              <Image
-                src="/sponsors/alcaldia_jamundi.png"
-                alt="Alcaldía de Jamundí"
-                width={480}
-                height={320}
-                className="max-h-36 sm:max-h-48 lg:max-h-56 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            {/* IMDERE */}
-            <div className="group flex items-center justify-center p-2 sm:p-4 h-44 sm:h-56 lg:h-64 w-full max-w-[320px] transition-transform duration-300 hover:scale-108">
-              <Image
-                src="/sponsors/imdere.png"
-                alt="IMDERE Jamundí"
-                width={480}
-                height={320}
-                className="max-h-36 sm:max-h-48 lg:max-h-56 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Alma Casa de Encuentros */}
-            <div className="group flex items-center justify-center p-2 sm:p-4 h-44 sm:h-56 lg:h-64 w-full max-w-[320px] transition-transform duration-300 hover:scale-108">
-              <Image
-                src="/sponsors/alma.png"
-                alt="Alma Casa de Encuentros"
-                width={480}
-                height={320}
-                className="max-h-36 sm:max-h-48 lg:max-h-56 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Electrolife */}
-            <div className="group flex items-center justify-center p-2 sm:p-4 h-44 sm:h-56 lg:h-64 w-full max-w-[320px] transition-transform duration-300 hover:scale-108">
-              <Image
-                src="/sponsors/electrolife.png"
-                alt="Electrolife"
-                width={480}
-                height={320}
-                className="max-h-28 sm:max-h-40 lg:max-h-48 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-14 items-center justify-items-center max-w-7xl mx-auto">
+            {sponsors.map((s, idx) => (
+              <div
+                key={idx}
+                className="group flex items-center justify-center p-2 sm:p-4 h-40 sm:h-52 lg:h-60 w-full max-w-[300px] transition-transform duration-300 hover:scale-108"
+              >
+                <Image
+                  src={s.src}
+                  alt={s.alt}
+                  width={480}
+                  height={320}
+                  className="max-h-32 sm:max-h-44 lg:max-h-52 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
