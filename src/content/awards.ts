@@ -45,6 +45,6 @@ export const awards = z
 
 export const awardsSection = {
   title: 'PREMIACIÓN ECONÓMICA',
-  subtitle: 'POR DISTANCIA Y POR RAMA',
+  subtitle: 'PARA MUJERES Y HOMBRES EN CADA DISTANCIA',
   ctaLabel: 'CORRE POR TU META. ¡INSCRÍBETE AHORA!',
 } as const;

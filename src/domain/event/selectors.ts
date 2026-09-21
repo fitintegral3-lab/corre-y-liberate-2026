@@ -13,8 +13,6 @@ import type { Award, Distance, DistanceId, PresalePhase } from '@/domain/event/s
 export interface AwardTotals {
   women: number;
   men: number;
-  /** `true` cuando ambas ramas reparten lo mismo, que es el caso del diseno. */
-  isBalanced: boolean;
 }
 
 /** Suma la bolsa de premios de una distancia, rama por rama. */
@@ -22,7 +20,7 @@ export function awardTotals(award: Award): AwardTotals {
   const women = award.places.reduce((total, place) => total + place.women, 0);
   const men = award.places.reduce((total, place) => total + place.men, 0);
 
-  return { women, men, isBalanced: women === men };
+  return { women, men };
 }
 
 /** Bolsa total del evento, sumando las dos ramas de todas las distancias. */

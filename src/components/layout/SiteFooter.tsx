@@ -1,7 +1,6 @@
-import { MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 
-import { FacebookIcon, InstagramIcon } from '@/components/ui/icons/SocialIcons';
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/ui/icons/SocialIcons';
 import { Container } from '@/components/ui';
 import { editionName, event, navLinks, venue } from '@/content';
 import { siteConfig } from '@/config/site';
@@ -48,7 +47,7 @@ export function SiteFooter() {
             aria-label="WhatsApp"
             className={socialLinkClasses}
           >
-            <MessageCircle size={26} aria-hidden="true" />
+            <WhatsAppIcon className="h-7 w-7 fill-current" />
           </a>
           <a
             href={siteConfig.links.instagram}

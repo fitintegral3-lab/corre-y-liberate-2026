@@ -47,11 +47,11 @@ const noonInBogota = (isoDate: string) => new Date(`${isoDate}T17:00:00Z`);
 
 describe('awardTotals', () => {
   it('suma la bolsa de cada rama', () => {
-    expect(awardTotals(award)).toEqual({ women: 400_000, men: 400_000, isBalanced: true });
+    expect(awardTotals(award)).toEqual({ women: 400_000, men: 400_000 });
   });
 
-  it('marca cuando las ramas no reparten lo mismo', () => {
-    expect(awardTotals(unbalanced).isBalanced).toBe(false);
+  it('no asume que las dos ramas reparten lo mismo', () => {
+    expect(awardTotals(unbalanced)).toEqual({ women: 100_000, men: 80_000 });
   });
 });
 

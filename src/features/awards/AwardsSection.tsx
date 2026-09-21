@@ -110,19 +110,25 @@ export function AwardsSection() {
                   </div>
                 </div>
 
-                <div
+                {/* Dos filas y no «$1.500.000 / RAMA»: «rama» es jerga, y la
+                    barra obliga a multiplicar de memoria para saber cuanto se
+                    reparte. Las columnas de arriba ya dicen MUJERES y HOMBRES;
+                    el total usa las mismas palabras y no pide cuentas. */}
+                <dl
                   className={cn(
-                    'flex items-center justify-between border-t-2 pt-4 font-athletic text-xl sm:text-2xl',
+                    'space-y-1 border-t-2 pt-4 font-athletic text-lg sm:text-xl',
                     style.border,
                   )}
                 >
-                  <span>TOTAL</span>
-                  <span>
-                    {totals.isBalanced
-                      ? `${formatCop(totals.women)} / RAMA`
-                      : `M ${formatCop(totals.women)} · H ${formatCop(totals.men)}`}
-                  </span>
-                </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt>TOTAL MUJERES</dt>
+                    <dd>{formatCop(totals.women)}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt>TOTAL HOMBRES</dt>
+                    <dd>{formatCop(totals.men)}</dd>
+                  </div>
+                </dl>
               </article>
             );
           })}
