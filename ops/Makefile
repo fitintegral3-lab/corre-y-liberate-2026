@@ -1,0 +1,111 @@
+.DEFAULT_GOAL := help
+
+.PHONY: help check tree context recurring upgrade destroy automation-check
+.PHONY: integration-check integration-sync require-key integration-promote
+.PHONY: require-agent agent-learn agent-propose agent-evaluate require-flow flow-list flow-check flow-show
+.PHONY: install-claude install-codex install-gemini install-antigravity
+.PHONY: uninstall-claude uninstall-codex uninstall-gemini uninstall-antigravity
+.PHONY: doctor-claude doctor-codex doctor-gemini doctor-antigravity
+
+# Jira es hoy el único proveedor; el día que haya otro se pasa PROVIDER=<slug>.
+PROVIDER ?= jira
+
+help: ## Muestra los comandos disponibles y su propósito
+	@awk 'BEGIN {FS = ":.*## "; printf "Uso: make <comando>\n\n"} \
+	/^[a-zA-Z0-9_-]+:.*## / {printf "  %-22s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+check: ## Valida planning e integraciones
+	@node tools/ops.js check planning
+
+tree: ## Muestra roadmap, backlog, WIP y Done
+	@node tools/ops.js tree planning
+
+context: ## Muestra el contexto mínimo de la tarea vigente
+	@node tools/ops.js context planning
+
+recurring: ## Muestra qué trabajo recurrente vence y con qué línea se promueve
+	@node tools/ops.js recurring planning
+
+# `init` fija la versión exacta del motor, así que `npm update` no la mueve: hay que pedir @latest.
+# Sin este primer paso `upgrade` compara contra el motor instalado y contesta «al día» para siempre.
+destroy: ## Muestra qué se pierde al borrar esta instancia (borrar exige --force a mano)
+	@node tools/ops.js destroy .
+
+upgrade: ## Trae la última versión de Cauce y la aplica, sin tocar lo del proyecto
+	@npm install --save-exact --save-dev @ingeniomaps/cauce@latest
+	@node tools/ops.js upgrade .
+
+automation-check: ## Comprueba hooks, workflows y adaptadores
+	@node tools/ops.js automation check .
+
+integration-check: ## Valida configuración y staging, sin conectarse
+	@node tools/ops.js integration check .
+
+integration-sync: ## Lee el proveedor y actualiza staging; PROVIDER=<slug> para elegir otro
+	@node tools/ops.js integration sync . "$(PROVIDER)"
+
+require-key:
+	@test -n "$(KEY)" || (echo "Falta KEY=<clave-remota>" >&2; exit 2)
+
+integration-promote: require-key ## Promueve el draft KEY=<clave> al roadmap
+	@node tools/ops.js integration promote . "$(PROVIDER)" "$(KEY)"
+
+require-agent:
+	@test -n "$(AGENT)" || (echo "Falta AGENT=<slug>" >&2; exit 2)
+
+agent-learn: require-agent ## Prepara el informe semanal de AGENT=<slug>
+	@node tools/ops.js learn "$(AGENT)"
+
+agent-propose: require-agent ## Consolida una propuesta para AGENT=<slug>
+	@node tools/ops.js learn "$(AGENT)" --proposal
+
+agent-evaluate: require-agent ## Evalúa controles y casos de AGENT=<slug>
+	@node tools/ops.js evaluate "$(AGENT)"
+
+require-flow:
+	@test -n "$(FLOW)" || (echo "Falta FLOW=<slug>" >&2; exit 2)
+
+flow-list: ## Lista los recorridos disponibles
+	@node tools/ops.js flow list
+
+flow-check: require-flow ## Valida contrato, agentes y etapas de FLOW=<slug>
+	@node tools/ops.js flow check "$(FLOW)"
+
+flow-show: require-flow ## Muestra el recorrido de FLOW=<slug>
+	@node tools/ops.js flow show "$(FLOW)"
+
+install-claude: ## Instala hooks y workflows para Claude
+	@node tools/ops.js automation install . claude
+
+install-codex: ## Instala hooks para Codex
+	@node tools/ops.js automation install . codex
+
+install-gemini: ## Instala contexto, comandos y configuración para Gemini
+	@node tools/ops.js automation install . gemini
+
+install-antigravity: ## Instala el plugin Cauce para Antigravity CLI
+	@node tools/ops.js automation install . antigravity
+
+uninstall-claude: ## Quita de Claude el wiring de Cauce, conservando lo tuyo
+	@node tools/ops.js automation uninstall . claude
+
+uninstall-codex: ## Quita de Codex el wiring de Cauce, conservando lo tuyo
+	@node tools/ops.js automation uninstall . codex
+
+uninstall-gemini: ## Quita de Gemini el wiring de Cauce, conservando lo tuyo
+	@node tools/ops.js automation uninstall . gemini
+
+uninstall-antigravity: ## Quita de Antigravity el wiring de Cauce, conservando lo tuyo
+	@node tools/ops.js automation uninstall . antigravity
+
+doctor-claude: ## Diagnostica la instalación de Claude
+	@node tools/ops.js automation doctor . claude
+
+doctor-codex: ## Diagnostica la instalación de Codex
+	@node tools/ops.js automation doctor . codex
+
+doctor-gemini: ## Diagnostica la instalación de Gemini
+	@node tools/ops.js automation doctor . gemini
+
+doctor-antigravity: ## Diagnostica la instalación de Antigravity CLI
+	@node tools/ops.js automation doctor . antigravity

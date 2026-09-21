@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/@ingeniomaps/cauce/engine/schemas/ops-config.schema.json",
+  "project": "corre-y-liberate-2026",
+  "mode": "sidecar",
+  "workspaceRoots": [
+    {
+      "name": "main",
+      "path": ".."
+    }
+  ],
+  "runner": {
+    "maxTaskHours": 4,
+    "humanCheckpointBetweenMilestones": true,
+    "commitPerTask": true,
+    "allowPush": false
+  },
+  "cauceVersion": "0.97.0"
+}
