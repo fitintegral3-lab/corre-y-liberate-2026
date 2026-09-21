@@ -9,18 +9,19 @@ como un `NaN` o una imagen rota.
 
 ## Dónde está cada cosa
 
-| Qué querés cambiar                        | Archivo                     |
-| ----------------------------------------- | --------------------------- |
-| Nombre, edición, fecha, lema, organizador | `src/content/event.ts`      |
-| Distancias, horas de salida, categorías   | `src/content/distances.ts`  |
-| Premiación por distancia y rama           | `src/content/awards.ts`     |
-| Fases de preventa y precios               | `src/content/pricing.ts`    |
-| Kit del corredor                          | `src/content/kit.ts`        |
-| Sede, dirección, mapa, apertura           | `src/content/venue.ts`      |
-| Patrocinadores                            | `src/content/sponsors.ts`   |
-| Pilares del propósito social              | `src/content/purpose.ts`    |
-| Enlaces del menú                          | `src/content/navigation.ts` |
-| Enlace de inscripción, redes, créditos    | `src/config/site.ts`        |
+| Qué querés cambiar                        | Archivo                       |
+| ----------------------------------------- | ----------------------------- |
+| Nombre, edición, fecha, lema, organizador | `src/content/event.ts`        |
+| Distancias, horas de salida, categorías   | `src/content/distances.ts`    |
+| Premiación por distancia y rama           | `src/content/awards.ts`       |
+| Fases de preventa y precios               | `src/content/pricing.ts`      |
+| Kit del corredor                          | `src/content/kit.ts`          |
+| Sede, dirección, mapa, apertura           | `src/content/venue.ts`        |
+| Patrocinadores                            | `src/content/sponsors.ts`     |
+| Pilares del propósito social              | `src/content/purpose.ts`      |
+| Pasos y requisitos para inscribirse       | `src/content/registration.ts` |
+| Enlaces del menú                          | `src/content/navigation.ts`   |
+| Enlace de inscripción, redes, créditos    | `src/config/site.ts`          |
 
 ## Reglas que conviene entender
 
@@ -69,14 +70,16 @@ metadatos, el sitemap y los datos estructurados.
 
 ### Agregar un patrocinador
 
-1. Dejá el logo en `public/sponsors/`.
+1. Convertí el logo a WebP y dejalo en `public/sponsors/`. Si el original es
+   PNG: `cwebp -lossless -m 6 logo.png -o logo.webp`, y si pesa más de 1200 px
+   de lado, agregá `-resize 1200 0`. El sitio lo muestra a 300 px como máximo.
 2. Agregá la entrada en `src/content/sponsors.ts`:
 
 ```ts
 {
   id: 'nombre-del-aliado',
   name: 'Nombre del Aliado',
-  logo: '/sponsors/nombre-del-aliado.png',
+  logo: '/sponsors/nombre-del-aliado.webp',
   tier: 'oficial',
 }
 ```

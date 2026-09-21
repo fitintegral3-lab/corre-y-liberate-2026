@@ -146,6 +146,12 @@ export const purposePillarSchema = z.object({
   description: z.string().min(1),
 });
 
+export const registrationStepSchema = z.object({
+  order: z.number().int().min(1),
+  title: z.string().min(1),
+  description: z.string().min(1),
+});
+
 export const navLinkSchema = z.object({
   href: anchorSchema,
   label: z.string().min(1),
@@ -193,5 +199,6 @@ export type RunnerKitItem = z.infer<typeof runnerKitItemSchema>;
 export type Venue = z.infer<typeof venueSchema>;
 export type Sponsor = z.infer<typeof sponsorSchema>;
 export type PurposePillar = z.infer<typeof purposePillarSchema>;
+export type RegistrationStep = z.infer<typeof registrationStepSchema>;
 export type NavLink = z.infer<typeof navLinkSchema>;
 export type RaceEvent = z.infer<typeof eventSchema>;

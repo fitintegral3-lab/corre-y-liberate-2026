@@ -6,6 +6,7 @@ import {
   PricingSection,
   PurposeSection,
   RegistrationBanner,
+  RegistrationStepsSection,
   RunnerKitSection,
   SponsorsSection,
   VenueSection,
@@ -43,6 +44,7 @@ export default function HomePage() {
         <AwardsSection />
         <EditionSection />
         <PricingSection />
+        <RegistrationStepsSection />
         <RunnerKitSection />
         <VenueSection />
         <SponsorsSection />

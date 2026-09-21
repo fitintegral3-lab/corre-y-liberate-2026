@@ -46,8 +46,3 @@ export const pricingSection = {
   categoriesHint: 'Precio por persona, en pesos colombianos',
   ctaLabel: 'ASEGURA TU CUPO AHORA',
 } as const;
-
-export const registrationBanner = {
-  title: '¡LAS INSCRIPCIONES YA ESTÁN ABIERTAS!',
-  ctaLabel: 'INSCRÍBETE AHORA',
-} as const;

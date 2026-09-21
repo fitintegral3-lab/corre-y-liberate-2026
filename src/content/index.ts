@@ -18,7 +18,13 @@ export {
 } from '@/content/event';
 export { runnerKitItems, runnerKitSection } from '@/content/kit';
 export { homeAnchor, navLinks } from '@/content/navigation';
-export { presalePhases, pricingSection, registrationBanner } from '@/content/pricing';
+export { presalePhases, pricingSection } from '@/content/pricing';
+export {
+  registrationBanner,
+  registrationChecklist,
+  registrationSection,
+  registrationSteps,
+} from '@/content/registration';
 export { purposePillars, purposeSection } from '@/content/purpose';
 export { sponsors, sponsorsSection } from '@/content/sponsors';
 export { venue, venueFullAddress, venueSection } from '@/content/venue';

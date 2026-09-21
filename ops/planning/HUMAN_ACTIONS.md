@@ -24,6 +24,8 @@ legible lo que queda por decidir.
 
 | Tarea | Estado | Origen | Acción concreta y condición de desbloqueo |
 |---|---|---|---|
+| — | pendiente | Ready | **No se puede inscribir al 3K.** En el formulario de cronometrajeinstantaneo.com/inscripciones/corre-y-liberate el campo `idcarrera` tiene exactamente tres opciones —`23877`, `23876`, `23874`, que son 5K, 7K y 10K— y el selector de talla va de XS a XXL, sin tallas de niño. El afiche de esa misma página anuncia 3K a $90.000. Hay que pedirle al proveedor que habilite la carrera 3K INFANTIL y tallas infantiles. Se desbloquea cuando `idcarrera` tenga una cuarta opción. |
+| — | pendiente | Ready | El afiche que el proveedor muestra en esa página se contradice: el encabezado dice «PREVENTA 2 · Del 16 de septiembre al 31 de octubre de 2026» y el banner de abajo dice «¡ASEGURA TU CUPO EN PREVENTA 1!». Pedir que reemplacen la imagen. |
 | — | pendiente | Ready | Entregar la URL real de la página de Facebook del evento. Hoy `src/config/site.ts` apunta al inicio de facebook.com y el ícono del pie lleva a ningún lado. Se desbloquea cuando la organización pase el enlace. |
 | — | pendiente | Ready | Confirmar la razón social exacta de CES Fundación Educativa, Cereales JJ, Casa de la Mujer Jamundí y El Cartel Running Club. Los nombres se leyeron de sus propios logos, así que sirven para el `alt`, pero no son una fuente autorizada. |
 | — | pendiente | Ready | Confirmar el dominio definitivo y cargar `NEXT_PUBLIC_SITE_URL` y `NEXT_PUBLIC_APP_ENV` en Vercel para Production, Preview y Development. Sin eso el sitemap, el robots y las vistas previas al compartir apuntan mal. Se desbloquea cuando `/api/health` en producción devuelva `environment: production`. |

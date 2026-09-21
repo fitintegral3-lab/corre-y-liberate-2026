@@ -11,6 +11,7 @@ export { HeroSection } from '@/features/hero/HeroSection';
 export { PricingSection } from '@/features/pricing/PricingSection';
 export { PurposeSection } from '@/features/purpose/PurposeSection';
 export { RegistrationBanner } from '@/features/registration/RegistrationBanner';
+export { RegistrationStepsSection } from '@/features/registration/RegistrationStepsSection';
 export { RunnerKitSection } from '@/features/kit/RunnerKitSection';
 export { SponsorsSection } from '@/features/sponsors/SponsorsSection';
 export { VenueSection } from '@/features/venue/VenueSection';
