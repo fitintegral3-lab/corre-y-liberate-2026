@@ -6,14 +6,30 @@ uno y otro, y por eso vive acá, donde Cauce no escribe: `upgrade` no lo toca nu
 
 ## Mapa real
 
-Completar antes de la primera tarea:
+**Qué se construye.** La landing oficial de la carrera atlética Corre y Libérate, 2ª edición —domingo
+22 de noviembre de 2026, Estadio El Cacique, Jamundí (Valle del Cauca)—. Organiza Integral Fit. El
+sitio tiene un solo objetivo medible: que quien entra termine inscrito en la plataforma externa de
+cronometraje. No cobra, no guarda datos de nadie y no tiene backend propio.
 
-- Qué producto se construye.
-- Qué repos o servicios existen y dónde viven.
-- Dónde documenta cada servicio sus comandos de test, lint y build.
-- Qué directorios son legacy o están fuera de alcance.
+**Un solo servicio.** Un repositorio, una aplicación Next.js 16 en la raíz. No hay monorepo, no hay
+API propia, no hay base de datos. La única ruta de servidor es `/api/health`, que reporta entorno y
+commit desplegado.
 
-El mapa no debe duplicar documentación técnica: enlaza a la fuente de verdad de cada servicio.
+**Comandos.** Declarados en `package.json`: `npm run verify` corre lint, tipos y pruebas; `npm run
+build` construye; `npm test` es Vitest. CI los invoca tal cual en `.github/workflows/ci.yml`.
+
+**Documentación.** `README.md` es la puerta de entrada. `docs/ARCHITECTURE.md` explica las capas y las
+decisiones con su porqué; `docs/CONTENT.md`, cómo se edita el contenido del evento sin tocar código;
+`docs/BRANCHING.md` y `docs/DEPLOYMENT.md`, ramas y entornos.
+
+**Dónde vive cada cosa.** `src/domain/` son las reglas del evento y no importa React. `src/content/`
+es la única fuente de verdad del contenido —precios, fechas, premios, patrocinadores— y se valida con
+Zod al importarse. `src/features/` es una carpeta por sección. La dirección de las dependencias no se
+invierte nunca.
+
+**Fuera de alcance.** `ops/` y `.claude/skills|workflows` los genera Cauce y los reescribe `make
+install-claude`: editarlos a mano se pierde. La plataforma de inscripciones
+(cronometrajeinstantaneo.com) es de un tercero y este repositorio solo enlaza a ella.
 
 ## Integraciones y ambientes
 

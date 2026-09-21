@@ -1,0 +1,12 @@
+# Dueños por defecto de todo el repositorio.
+*                   @fitintegral3-lab
+
+# La instancia de Cauce y el wiring del runner los regenera `automation
+# install`: un cambio a mano ahí se pierde en la próxima actualización, así que
+# conviene que lo mire alguien antes de entrar.
+/ops/               @fitintegral3-lab
+/.claude/           @fitintegral3-lab
+
+# El contenido del evento es lo único que cambia sin ser código: precios,
+# fechas y premios salen de acá y se publican tal cual.
+/src/content/       @fitintegral3-lab

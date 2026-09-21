@@ -8,6 +8,9 @@
       "path": ".."
     }
   ],
+  "writableOutsideRoots": [
+    "~/.claude/projects/-Users-santiago-abadia-Documents-Private-running-corre-y-liberate-2026/memory"
+  ],
   "runner": {
     "maxTaskHours": 4,
     "humanCheckpointBetweenMilestones": true,

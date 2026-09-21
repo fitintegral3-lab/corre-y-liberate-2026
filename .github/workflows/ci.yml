@@ -1,0 +1,85 @@
+name: CI
+
+# `development` integra; `main` publica. Las dos corren lo mismo: lo que se
+# mergea a development es exactamente lo que despues se promueve a main, asi
+# que no tiene sentido que una tenga una puerta mas baja que la otra.
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+concurrency:
+  # Un push nuevo sobre la misma rama cancela la corrida anterior: nadie mira
+  # el resultado de un commit que ya quedo atras.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, tipos y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formato
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Pruebas
+        run: npm test
+
+  build:
+    name: Build de produccion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # El build valida el entorno contra `src/lib/env.ts`. Se le pasan
+          # valores reales para que un esquema mal definido falle aca y no en
+          # el primer despliegue.
+          NEXT_PUBLIC_SITE_URL: https://correyliberate.com
+          NEXT_PUBLIC_APP_ENV: production
+
+  planning:
+    name: Planning de Cauce
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Instalar el motor de Cauce
+        working-directory: ops
+        run: npm ci
+
+      - name: Validar contratos, unicidad y trazabilidad
+        working-directory: ops
+        run: node tools/ops.js check planning

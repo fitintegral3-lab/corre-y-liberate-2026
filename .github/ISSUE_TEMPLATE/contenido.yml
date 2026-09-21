@@ -1,0 +1,40 @@
+name: Cambio de contenido
+description: Corregir un precio, una hora, un patrocinador o cualquier dato del evento
+labels: [contenido]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El contenido del evento vive en `src/content/`. No hace falta tocar
+        ningún componente: se cambia el dato y el sitio se actualiza solo.
+
+  - type: dropdown
+    id: que
+    attributes:
+      label: Qué hay que cambiar
+      options:
+        - Precios o fechas de preventa
+        - Premiación
+        - Distancias u horarios de salida
+        - Kit del corredor
+        - Sede o cómo llegar
+        - Patrocinadores
+        - Otro
+    validations:
+      required: true
+
+  - type: textarea
+    id: dice-debe-decir
+    attributes:
+      label: Dice / debe decir
+      placeholder: |
+        Dice: 10K $160.000
+        Debe decir: 10K $170.000
+    validations:
+      required: true
+
+  - type: input
+    id: desde-cuando
+    attributes:
+      label: Desde cuándo aplica
+      placeholder: Inmediato · a partir del 1 de noviembre
