@@ -44,7 +44,10 @@ export function AwardsSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 text-left md:grid-cols-3 lg:gap-8">
+        {/* Tres columnas recien en `lg`. En una tablet vertical (768 px) tres
+            tarjetas dejan unos 230 px cada una y los encabezados de la tabla
+            —PUESTO, MUJERES, HOMBRES— se pegan entre si sin espacio. */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 text-left md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {awards.map((award) => {
             const distance = findDistance(distances, award.distanceId);
             const style = awardCardStyles[award.theme];

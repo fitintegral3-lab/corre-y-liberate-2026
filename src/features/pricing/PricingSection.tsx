@@ -12,7 +12,7 @@ const cardBackground = 'rgba(0, 0, 0, 0.69)';
  * las cuatro columnas conviven y sus bordes tienen que coincidir; apilado en
  * movil, cada tarjeta ocupa lo que necesita.
  */
-const headerClasses = 'border-b border-white/20 pb-3 md:flex md:min-h-28 md:flex-col';
+const headerClasses = 'border-b border-white/20 pb-3 lg:flex lg:min-h-28 lg:flex-col';
 
 const cardClasses =
   'flex flex-col justify-between rounded-2xl border border-white/15 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:border-white/35 hover:shadow-2xl hover:shadow-black/70';
@@ -34,7 +34,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 text-left md:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 text-left md:grid-cols-2 lg:grid-cols-4">
           {/* Columna de categorias: la llave de lectura de las tres siguientes. */}
           <div style={{ backgroundColor: cardBackground }} className={cardClasses}>
             <div>
@@ -94,7 +94,7 @@ export function PricingSection() {
                           columna de la izquierda ya lo dice, y ahi el rotulo
                           queda solo para lectores de pantalla, que leen celda
                           por celda y tampoco ven esa columna. */}
-                      <span className="mb-1 block font-athletic-bold text-sm tracking-wider text-white/70 md:mb-0 md:sr-only">
+                      <span className="mb-1 block font-athletic-bold text-sm tracking-wider text-white/70 lg:mb-0 lg:sr-only">
                         {distance.fullLabel}
                       </span>
                       <span className="block font-athletic text-4xl leading-none text-white sm:text-5xl">
@@ -105,7 +105,7 @@ export function PricingSection() {
                           el rotulo ya ocupa esa linea. */}
                       <span
                         aria-hidden="true"
-                        className="mt-1 hidden text-[11px] text-transparent select-none md:block"
+                        className="mt-1 hidden text-[11px] text-transparent select-none lg:block"
                       >
                         -
                       </span>

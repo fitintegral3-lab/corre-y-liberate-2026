@@ -29,7 +29,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="font-athletic-bold text-base tracking-wider text-neutral-300 transition-colors hover:text-white sm:text-lg"
+                    className="inline-block py-2 font-athletic-bold text-base tracking-wider text-neutral-300 transition-colors hover:text-white sm:text-lg"
                   >
                     {link.label}
                   </a>

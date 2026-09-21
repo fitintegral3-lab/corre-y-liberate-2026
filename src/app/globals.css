@@ -77,6 +77,24 @@ body {
   font-family: var(--font-sans);
 }
 
+/* ---------------------------------------------------------------------------
+ * Foco visible.
+ *
+ * El preflight de Tailwind quita el contorno que el navegador dibuja al
+ * enfocar y no pone nada en su lugar, asi que navegar con teclado deja de
+ * verse. `:focus-visible` solo se activa con teclado: quien usa el mouse no
+ * ve ningun anillo.
+ *
+ * Son dos anillos y no uno porque el sitio alterna fondos: el blanco se ve
+ * sobre las fotografias y el naranja de la premiacion; el naranja de afuera
+ * se ve sobre las secciones blancas.
+ * ------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--color-brand-orange);
+}
+
 /* Barra de desplazamiento en los colores de la marca. */
 ::-webkit-scrollbar {
   width: 8px;

@@ -30,13 +30,17 @@ export function RunnerKitSection() {
             </h2>
           </div>
 
-          <ul className="grid grid-cols-3 gap-3 pt-2 pb-2 sm:grid-cols-6 sm:gap-0">
+          {/* Seis en fila recien en `xl`. La columna que los contiene es la
+              mitad del lienzo, asi que antes de eso cada celda queda en ~80 px
+              y «Hidratación» se desborda sobre la de al lado. Tres columnas en
+              dos filas entran siempre. */}
+          <ul className="grid grid-cols-3 gap-3 pt-2 pb-2 xl:grid-cols-6 xl:gap-0">
             {runnerKitItems.map((item, index) => (
               <li
                 key={item.id}
                 className={cn(
-                  'group/kit flex flex-col items-center px-2 py-2 text-center transition-transform duration-300 hover:scale-110 sm:py-0',
-                  index !== 0 && 'sm:border-l-2 sm:border-brand-orange',
+                  'group/kit flex flex-col items-center px-2 py-2 text-center transition-transform duration-300 hover:scale-110 xl:py-0',
+                  index !== 0 && 'xl:border-l-2 xl:border-brand-orange',
                 )}
               >
                 <div className="relative mb-2 flex h-16 w-16 items-center justify-center transition-transform duration-300 group-hover/kit:-translate-y-1">

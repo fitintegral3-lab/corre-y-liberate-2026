@@ -19,8 +19,12 @@ import { cn } from '@/lib/utils/cn';
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // `inline-block py-2` existe por el area de toque, no por el espaciado: sin
+  // el, el enlace mide exactamente lo que mide su texto —11 px de alto— y en
+  // un portatil tactil o un telefono hay que apuntarle. No mueve nada en
+  // pantalla: la altura del header la fija el logo.
   const linkClasses =
-    'font-athletic-bold tracking-wider text-neutral-800 transition-colors hover:text-brand-orange';
+    'inline-block py-2 font-athletic-bold tracking-wider text-neutral-800 transition-colors hover:text-brand-orange';
 
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-100 bg-white/95 shadow-sm backdrop-blur-md transition-all">
