@@ -7,6 +7,13 @@ import { formatCop, formatDateRange } from '@/lib/format';
 /** Fondo negro al 69 %, exacto al diseno original. */
 const cardBackground = 'rgba(0, 0, 0, 0.69)';
 
+/**
+ * Encabezado de tarjeta. La altura minima solo aplica desde `md`, que es donde
+ * las cuatro columnas conviven y sus bordes tienen que coincidir; apilado en
+ * movil, cada tarjeta ocupa lo que necesita.
+ */
+const headerClasses = 'border-b border-white/20 pb-3 md:flex md:min-h-28 md:flex-col';
+
 const cardClasses =
   'flex flex-col justify-between rounded-2xl border border-white/15 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:border-white/35 hover:shadow-2xl hover:shadow-black/70';
 
@@ -31,9 +38,18 @@ export function PricingSection() {
           {/* Columna de categorias: la llave de lectura de las tres siguientes. */}
           <div style={{ backgroundColor: cardBackground }} className={cardClasses}>
             <div>
-              <h3 className="border-b border-white/20 pb-3 font-athletic-bold text-2xl text-white">
-                {pricingSection.categoriesTitle}
-              </h3>
+              {/* `md:min-h-*` sincroniza el borde inferior de los cuatro
+                  encabezados. Antes cada uno terminaba donde lo dejaba su
+                  texto, asi que agregar una linea a las fases desalineaba las
+                  filas de precios contra las de categorias. */}
+              <div className={headerClasses}>
+                <h3 className="font-athletic-bold text-2xl text-white">
+                  {pricingSection.categoriesTitle}
+                </h3>
+                <span className="mt-2 block text-[13px] font-semibold text-white/60">
+                  {pricingSection.categoriesHint}
+                </span>
+              </div>
               <div className="divide-y divide-white/15">
                 {distances.map((distance) => (
                   <div key={distance.id} className="py-4">
@@ -52,12 +68,19 @@ export function PricingSection() {
           {presalePhases.map((phase) => (
             <div key={phase.id} style={{ backgroundColor: cardBackground }} className={cardClasses}>
               <div>
-                <div className="border-b border-white/20 pb-3">
+                <div className={headerClasses}>
                   <h3 className="font-athletic-bold text-2xl leading-none text-white">
                     {phase.name}
                   </h3>
                   <span className="mt-1 block font-athletic-bold text-xs text-brand-orange">
                     {phase.tagline}
+                  </span>
+                  {/* La vigencia va arriba y no al pie: es lo que decide si este
+                      precio le sirve a quien lee, y al final de la tarjeta
+                      quedaba despues de cuatro precios, en letra chica y tras
+                      un borde. Nadie llegaba. */}
+                  <span className="mt-2 block text-[13px] font-semibold text-white/80">
+                    {formatDateRange(phase.startsOn, phase.endsOn)}
                   </span>
                 </div>
 
@@ -89,10 +112,6 @@ export function PricingSection() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="border-t border-white/15 pt-4 text-xs font-medium text-neutral-300">
-                {formatDateRange(phase.startsOn, phase.endsOn)}
               </div>
             </div>
           ))}
