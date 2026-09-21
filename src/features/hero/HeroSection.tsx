@@ -8,7 +8,7 @@ export function HeroSection() {
     <section
       id="inicio"
       className="relative flex min-h-[640px] items-center overflow-hidden bg-cover bg-[position:18%_center] sm:bg-[position:25%_center] lg:min-h-[740px] lg:bg-center"
-      style={{ backgroundImage: "url('/backgrounds/bg_hero.jpg')" }}
+      style={{ backgroundImage: "url('/backgrounds/bg_hero.webp')" }}
     >
       {/* Contraste para que el texto se lea sobre la fotografia en pantallas chicas. */}
       <div

@@ -15,7 +15,7 @@ export function PricingSection() {
     <section
       id="precios"
       className="relative overflow-hidden bg-cover bg-center px-4 py-22 text-white sm:px-8"
-      style={{ backgroundImage: "url('/backgrounds/bg_preventas.jpg')" }}
+      style={{ backgroundImage: "url('/backgrounds/bg_preventas.webp')" }}
     >
       <Container className="relative z-10 text-center">
         <div className="mb-14">

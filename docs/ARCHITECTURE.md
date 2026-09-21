@@ -136,6 +136,35 @@ ganan sobre las utilidades de Tailwind, que es como se comporta el diseño hoy
 —el `line-height` de `.font-athletic` manda sobre el de `text-6xl`—. Moverlas a
 una capa invertiría esa precedencia y correría títulos en toda la página.
 
+### Imágenes
+
+Los siete fondos de sección se sirven por `background-image` de CSS, y eso los
+deja **fuera del alcance de `next/image`**: no hay `srcset`, no hay AVIF, no hay
+recorte por tamaño. Llegaban crudos, a 5692 px de ancho, sobre un lienzo de
+1366: **13,2 MB en cada visita**.
+
+Convertidos a WebP y redimensionados a 2560 px quedan en 791 KB — un 94 % menos
+— sin diferencia visible: son fotografías bajo una capa de contraste y texto.
+
+Los logos de patrocinadores pasaron de PNG a WebP eligiendo por archivo entre
+sin pérdida y `q=88` con alfa intacto, el que pese menos. De 3,5 MB a 462 KB. Al
+ir por `next/image`, lo que descarga quien visita ya estaba optimizado; lo que
+se gana acá es el peso del repositorio y el trabajo de reencodear en cada build.
+
+El mapa de la sede era un PNG de 422 KB marcado `unoptimized`, así que viajaba
+entero. Ahora es WebP sin pérdida y sin esa marca: `next/image` entrega el
+tamaño que cada pantalla pide.
+
+|                    | antes   | después              |
+| ------------------ | ------- | -------------------- |
+| Fondos (7)         | 13,2 MB | 791 KB               |
+| Patrocinadores (8) | 3,5 MB  | 462 KB               |
+| Mapa de la sede    | 422 KB  | 266 KB, y responsive |
+
+Lo que **no** está resuelto: un teléfono de 375 px descarga el mismo fondo de
+2560 px que un monitor. La solución es `next/image` con `fill`, y está anotada
+en el INBOX con lo que cuesta.
+
 ### Renderizado: estático con revalidación horaria
 
 `export const revalidate = 3600` en `app/page.tsx`. La página es estática salvo
@@ -186,8 +215,8 @@ Registrado en `ops/planning/` y en `ops/planning/HUMAN_ACTIONS.md`:
 
 - El enlace de Facebook del footer apunta al inicio de facebook.com, no a la
   página del evento. Necesita que la organización entregue la URL real.
-- `public/fonts/` conserva archivos `.cff` y `Teko` que no referencia nadie.
-- Los logos de patrocinadores 5 a 8 se llaman «Patrocinador Oficial»: faltan los
-  nombres reales.
-- `public/sponsors/alma.png` pesa 1,8 MB. `next/image` lo re-comprime al
-  servirlo, pero el repositorio carga ese peso en cada clon.
+- 46 archivos de `public/` (5,5 MB) no los referencia nadie: exportaciones de
+  diseño, fragmentos de fuentes y duplicados. Borrarlos es decisión de una
+  persona, no de un refactor.
+- Los fondos son un solo WebP de 2560 px servido por CSS: un teléfono descarga
+  lo mismo que un monitor. Pasarlos a `next/image` con `fill` daría `srcset`.

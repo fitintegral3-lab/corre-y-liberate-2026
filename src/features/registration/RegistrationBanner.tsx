@@ -20,7 +20,7 @@ export function RegistrationBanner() {
   return (
     <section
       className="relative overflow-hidden bg-cover bg-center px-4 py-16 text-center text-white sm:px-8"
-      style={{ backgroundImage: "url('/backgrounds/bg_inscriptions.jpg')" }}
+      style={{ backgroundImage: "url('/backgrounds/bg_inscriptions.webp')" }}
     >
       <div className="relative z-10 mx-auto max-w-4xl space-y-4">
         <h2 className="font-athletic text-4xl text-white drop-shadow sm:text-6xl">

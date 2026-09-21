@@ -10,7 +10,7 @@ export function VenueSection() {
     <section
       id="como-llegar"
       className="relative bg-cover bg-center px-4 py-20 sm:px-8"
-      style={{ backgroundImage: "url('/backgrounds/bg_ubicacion.jpg')" }}
+      style={{ backgroundImage: "url('/backgrounds/bg_ubicacion.webp')" }}
     >
       <Container className="space-y-12">
         <div>
@@ -39,9 +39,10 @@ export function VenueSection() {
                 src={venue.mapImage}
                 alt={`Mapa de ${venue.name} — clic para abrir en Google Maps`}
                 fill
-                // Captura de mapa ya rasterizada: reoptimizarla no gana bytes y
-                // si degrada la legibilidad de las etiquetas.
-                unoptimized
+                // Sin `unoptimized`: la fuente es un WebP sin perdida de 1572 px
+                // y next/image entrega el tamanio que cada pantalla necesita.
+                // En un telefono son ~30 KB en vez de los 422 KB del PNG que
+                // habia antes, que viajaba entero.
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />

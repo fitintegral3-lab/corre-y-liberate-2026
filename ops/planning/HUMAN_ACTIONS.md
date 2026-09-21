@@ -25,7 +25,7 @@ legible lo que queda por decidir.
 | Tarea | Estado | Origen | Acción concreta y condición de desbloqueo |
 |---|---|---|---|
 | — | pendiente | Ready | Entregar la URL real de la página de Facebook del evento. Hoy `src/config/site.ts` apunta al inicio de facebook.com y el ícono del pie lleva a ningún lado. Se desbloquea cuando la organización pase el enlace. |
-| — | pendiente | Ready | Entregar los nombres reales de los patrocinadores 5 a 8. Hoy los cuatro figuran como «Patrocinador Oficial» en el `alt` de su logo, que es lo que lee un buscador y un lector de pantalla. |
+| — | pendiente | Ready | Confirmar la razón social exacta de CES Fundación Educativa, Cereales JJ, Casa de la Mujer Jamundí y El Cartel Running Club. Los nombres se leyeron de sus propios logos, así que sirven para el `alt`, pero no son una fuente autorizada. |
 | — | pendiente | Ready | Confirmar el dominio definitivo y cargar `NEXT_PUBLIC_SITE_URL` y `NEXT_PUBLIC_APP_ENV` en Vercel para Production, Preview y Development. Sin eso el sitemap, el robots y las vistas previas al compartir apuntan mal. Se desbloquea cuando `/api/health` en producción devuelva `environment: production`. |
 | — | pendiente | Ready | Proteger `main` y `development` en GitHub: PR obligatorio, checks `quality`, `build` y `planning` requeridos, sin push forzado, y una aprobación en `main`. Requiere permisos de administración del repositorio. |
 

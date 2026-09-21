@@ -10,7 +10,7 @@ export function RunnerKitSection() {
     <section
       id="kit"
       className="relative overflow-hidden bg-cover bg-[position:65%_center] text-white lg:bg-center"
-      style={{ backgroundImage: "url('/backgrounds/bg_kit.jpg')" }}
+      style={{ backgroundImage: "url('/backgrounds/bg_kit.webp')" }}
     >
       <Container className="grid min-h-[520px] grid-cols-1 items-stretch p-4 sm:p-0 lg:grid-cols-12">
         {/* Mitad izquierda vacia a proposito: ahi va la fotografia del fondo. */}

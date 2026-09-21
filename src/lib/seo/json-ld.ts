@@ -35,7 +35,7 @@ export function buildEventJsonLd(now: Date = new Date()) {
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     url: siteConfig.url,
-    image: [new URL('/backgrounds/bg_hero.jpg', siteConfig.url).toString()],
+    image: [new URL('/backgrounds/bg_hero.webp', siteConfig.url).toString()],
     location: {
       '@type': 'Place',
       name: venue.name,

@@ -13,7 +13,7 @@ const backgroundImage = [
     ' rgba(245, 105, 10, 0.45) 45%,' +
     ' rgba(195, 50, 0, 0.65) 80%,' +
     ' rgba(30, 8, 2, 0.85) 100%)',
-  "url('/backgrounds/bg_premiacion.jpg')",
+  "url('/backgrounds/bg_premiacion.webp')",
 ].join(', ');
 
 export function AwardsSection() {

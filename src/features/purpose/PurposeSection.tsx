@@ -5,7 +5,7 @@ export function PurposeSection() {
   return (
     <section
       className="relative overflow-hidden bg-cover bg-[position:35%_center] text-white lg:bg-center"
-      style={{ backgroundImage: "url('/backgrounds/bg_proposito.jpg')" }}
+      style={{ backgroundImage: "url('/backgrounds/bg_proposito.webp')" }}
     >
       <Container className="grid min-h-[460px] grid-cols-1 items-stretch p-4 sm:p-0 lg:grid-cols-12">
         <div className="my-4 flex flex-col justify-center space-y-6 rounded-3xl border border-white/10 bg-black/70 p-6 backdrop-blur-sm sm:p-12 lg:col-span-6 lg:my-0 lg:rounded-none lg:border-none lg:bg-transparent lg:p-16 lg:backdrop-blur-none">

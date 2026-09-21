@@ -8,7 +8,7 @@ export const venue = venueSchema.parse({
   region: 'Valle del Cauca',
   country: 'Colombia',
   mapsUrl: 'https://share.google/VDmYIqfv4StJiX6wc',
-  mapImage: '/images/assets/img_xref_24.png',
+  mapImage: '/images/assets/mapa_estadio_el_cacique.webp',
   doorsOpenAt: '5:00 A.M.',
   doorsOpenNote:
     'Llega con tiempo, ubica tu corral y disfruta de las experiencias y stands antes de la salida.',

@@ -25,10 +25,6 @@ export const siteConfig = {
      */
     facebook: 'https://facebook.com',
   },
-
-  credits: {
-    developer: { name: 'Scibaru AI', url: 'https://scibaru-ai.vercel.app' },
-  },
 } as const;
 
 export type SiteConfig = typeof siteConfig;

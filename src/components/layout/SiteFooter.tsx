@@ -1,4 +1,4 @@
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 
 import { FacebookIcon, InstagramIcon } from '@/components/ui/icons/SocialIcons';
@@ -70,33 +70,10 @@ export function SiteFooter() {
           </a>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row sm:gap-4">
-          <p className="text-xs font-medium text-neutral-400">
-            © {event.year} {event.name} · {editionName} {event.organizer.name} · {venue.city},{' '}
-            {venue.region}. Todos los derechos reservados.
-          </p>
-          <span className="hidden text-neutral-700 sm:inline">|</span>
-          <a
-            href={siteConfig.credits.developer.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex cursor-pointer items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/90 px-4 py-1.5 text-xs text-neutral-300 shadow-md transition-all duration-300 hover:scale-105 hover:border-brand-amber hover:text-white"
-            aria-label={`Sitio web de ${siteConfig.credits.developer.name}`}
-          >
-            <Sparkles
-              size={13}
-              aria-hidden="true"
-              className="text-brand-amber transition-colors duration-300 group-hover:rotate-12 group-hover:text-[#ffaa00]"
-            />
-            <span className="text-[11px] tracking-wide sm:text-xs">
-              Desarrollado por{' '}
-              <span className="font-bold text-white transition-colors group-hover:text-[#ffaa00]">
-                {siteConfig.credits.developer.name}
-              </span>{' '}
-              ↗
-            </span>
-          </a>
-        </div>
+        <p className="pt-2 text-xs font-medium text-neutral-400">
+          © {event.year} {event.name} · {editionName} {event.organizer.name} · {venue.city},{' '}
+          {venue.region}. Todos los derechos reservados.
+        </p>
       </Container>
     </footer>
   );
