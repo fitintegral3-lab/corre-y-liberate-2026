@@ -64,15 +64,25 @@ export function PricingSection() {
                 <div className="divide-y divide-white/15">
                   {distances.map((distance) => (
                     <div key={distance.id} className="py-4">
-                      {/* La categoria ya esta en la primera columna; aca se repite
-                          solo para lectores de pantalla, que leen celda por celda. */}
-                      <span className="sr-only">{distance.fullLabel}: </span>
+                      {/* En movil las cuatro tarjetas se apilan y la columna de
+                          categorias queda arriba de todo, asi que un precio
+                          suelto no dice a que distancia corresponde. Por eso
+                          cada uno lleva su rotulo encima. En escritorio la
+                          columna de la izquierda ya lo dice, y ahi el rotulo
+                          queda solo para lectores de pantalla, que leen celda
+                          por celda y tampoco ven esa columna. */}
+                      <span className="mb-1 block font-athletic-bold text-sm tracking-wider text-white/70 md:mb-0 md:sr-only">
+                        {distance.fullLabel}
+                      </span>
                       <span className="block font-athletic text-4xl leading-none text-white sm:text-5xl">
                         {formatCop(priceFor(phase, distance.id))}
                       </span>
+                      {/* Iguala la altura de fila con la columna de categorias,
+                          que lleva dos lineas por distancia. En movil sobra: ahi
+                          el rotulo ya ocupa esa linea. */}
                       <span
                         aria-hidden="true"
-                        className="mt-1 block text-[11px] text-transparent select-none"
+                        className="mt-1 hidden text-[11px] text-transparent select-none md:block"
                       >
                         -
                       </span>
