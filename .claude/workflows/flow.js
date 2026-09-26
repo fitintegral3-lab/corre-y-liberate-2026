@@ -1,0 +1,597 @@
+// Recorrido de un equipo: convierte una intención en una épica candidata, o en la razón por la
+// que todavía no se puede. Es el espejo de `autobuild`, que ejecuta trabajo ya aprobado.
+//
+// Nunca promueve: escribe la épica en roadmap/ y para. Promoverla al BACKLOG sigue siendo la firma
+// humana que autoriza ejecución.
+export const meta = {
+  name: 'flow',
+  description: 'Recorre las etapas de un equipo, exige sus exit gates y propone una épica',
+  whenToUse: 'Evaluar si una idea es viable y darle forma antes de aprobarla, con varios cargos.',
+  phases: [
+    { title: 'Contract', detail: 'Manifiesto del equipo y contexto de la empresa' },
+    { title: 'Stages', detail: 'Una etapa por dueño de decisión, con su exit gate' },
+    { title: 'Draft', detail: 'Épica candidata con criterios observables' },
+    { title: 'Closing', detail: 'Validación y acciones humanas pendientes' },
+  ],
+}
+
+// La raíz la completa `automation install`. No puede venir del entorno: el runtime de workflows no
+// expone `process`, así que leerlo de ahí reventaba el archivo entero en su primera línea. Viaja escrita.
+//
+// Y viaja **absoluta**. Lo fue relativa hasta 0.89.0, anclada a la carpeta donde se abre la herramienta
+// «que es el cwd de los agentes» — y esa segunda mitad es la que no se cumple: cada consigna dicta «corré
+// X desde Y» con las dos rutas relativas, así que coinciden sólo si la sesión abrió exactamente donde el
+// instalador supuso. Abierta en la instancia, el tramo se duplica y el comando contesta que el planning
+// no existe (caso 139). Absoluta no hay dónde pararse mal.
+//
+// El costo de escribirla —y por qué se paga acá— lo declara `engine/automation/runners.js` junto al
+// marcador.
+//
+// Sin instalar queda vacía y vale `.`: el toolkit no se consume a sí mismo y sus recorridos se ejercitan
+// desde su propia carpeta.
+const ROOT = '/Users/santiago.abadia/Documents/Private/running/corre-y-liberate-2026/ops'.replace(/\/+$/, '') || '.'
+// Lo que un recorrido le pide a un agente cuando escribe en el INBOX (caso 101). El tope lo aplica el
+// recorrido sobre lo que le pasa al agente, no el agente: pedirle que se limite no es un tope. Lo que no
+// entra se cuenta donde cada recorrido lo deja, y ninguno lo tira en silencio.
+const INBOX_CAP = 3
+// La forma de una entrada, igual a la que declara el molde de `INBOX.md`: quien escribe no tiene que
+// abrir el archivo para saberla. Una prueba ata las dos.
+const INBOX_ENTRY = '- **slug-del-item** — Qué es, y qué se decide o se resuelve con esto.'
+// Los nombres que ya hay, por sección, tal como los imprime `ops context --json` en su campo inbox.
+const INBOX_HEADS = { type: 'object', additionalProperties: false, properties: Object.fromEntries(
+  ['deuda', 'ideas', 'propuestas', 'lecciones'].map((key) => [key, { type: 'array', items: { type: 'string' } }]),
+) }
+// Lo que entra en una entrada, procedencia incluida. El tope es del conjunto y no del detalle: así un
+// sufijo largo recorta lo que se cuenta y nunca al revés. Se recorta el detalle porque es lo único
+// recuperable —sigue entero en el informe o en `done/`—, y la procedencia no se reconstruye después.
+const INBOX_LINE = 240
+// Una entrada es una línea. Un hallazgo de largo libre se recorta antes de llegar a quien lo escribe,
+// porque lo que llega entero es lo que termina copiado entero.
+const oneLine = (text, reserved = 0) => {
+  const first = String(text || '').split('\n')[0].trim()
+  const cap = INBOX_LINE - reserved
+  return first.length > cap ? `${first.slice(0, cap - 1)}…` : first
+}
+// De qué vía salió una entrada: el recorrido, la unidad de la que salió —una tarea, un informe, un
+// equipo— y la fecha. La arma el recorrido, que es el que las sabe, en vez de pedírselas al agente que
+// escribe: una convención que depende de que alguien se acuerde no deja rastro cuando no se cumple, y
+// una entrada sin remitente se lee igual que una que nunca lo tuvo (caso 115).
+//
+// Las partes vacías se caen: `onboard` no tiene ni tarea ni informe, y la fecha la da el motor —acá no
+// hay reloj—, así que falta si el comando que la trae no contestó. Va entre paréntesis, al final y en
+// minúscula, porque compite con lo que la entrada dice; y nombra al recorrido y nunca a un cargo, para
+// que no se lea como una firma con la que decidir sin leer la entrada.
+const inboxOrigin = (...parts) => `(${parts.filter(Boolean).join(' · ')})`
+// La entrada ya armada, para que quien escribe la copie en vez de redactarla.
+const withOrigin = (detail, origin) => `${oneLine(detail, origin.length + 1)} ${origin}`
+// La forma y los nombres que ya hay en las secciones donde se va a escribir. Van los nombres y no el
+// archivo: con ellos alcanza para no repetir una entrada, y el archivo entero pesaría lo que el INBOX.
+function inboxAsk(sections, heads, origin) {
+  const known = sections.map((name) => {
+    const names = (heads || {})[name.toLowerCase()] || []
+    return names.length ? `en ${name} ya están ${names.join(', ')}` : `${name} no tiene entradas`
+  }).join('; ')
+  return `Cada entrada con la forma del molde —${INBOX_ENTRY}—: un nombre y una línea, y la evidencia se ` +
+    `cita donde ya vive, no se copia. Cada línea que te paso termina con su procedencia —${origin}—: va al ` +
+    `final de la entrada tal cual, sin reescribirla, resumirla ni completarla. ` +
+    `Por nombre, ${known}: lo que ya esté con uno de esos nombres no se ` +
+    `vuelve a escribir.`
+}
+
+// Dónde trabaja el recorrido. Normalmente es la raíz donde se lo invocó; `args.root` existe para
+// correrlo sobre otra instancia —el banco desechable con el que `flow-eval` lo mide—, porque un
+// recorrido que sólo sabe escribir en su propio planning/ no se puede medir sin ensuciarlo.
+const WORKDIR = String((typeof args === 'string' ? '' : (args || {}).root) || ROOT).replace(/\/+$/, '')
+const P = `${WORKDIR}/planning`
+const ROADMAP = `${P}/roadmap`
+const HUMAN = `${P}/HUMAN_ACTIONS.md`
+const INBOX = `${P}/INBOX.md`
+const REPORTS = `${P}/reports`
+
+// Tres formas de invocarlo, porque escribir JSON en un slash command no es razonable:
+//
+//   /flow quiero cobrar con tarjeta                    equipo por defecto
+//   /flow feasibility-review: quiero cobrar con tarjeta   equipo elegido por prefijo
+//   /flow {"flow": "acme-soporte", "intent": "..."}    argumentos estructurados
+//
+// El prefijo se toma como candidato y se confirma más abajo contra los equipos que existen: si no es
+// uno, el texto completo era la intención y nadie tuvo que aprenderse una sintaxis.
+const input = typeof args === 'string' ? { intent: args } : (args || {})
+const raw = String(input.intent || '').trim()
+const prefix = raw.match(/^([a-z][a-z0-9-]*)\s*:\s*(.+)$/s)
+const CANDIDATE = String(input.flow || (prefix ? prefix[1] : '') || 'product-development')
+const INTENT = (input.flow || !prefix ? raw : prefix[2]).trim()
+
+const MANIFEST = {
+  // `exists` es lo único obligatorio: el mismo agente responde "no hay tal equipo" sin poder llenar
+  // un manifiesto que no existe. El resto se exige después, cuando sí lo hay.
+  type: 'object', additionalProperties: false, required: ['exists'],
+  properties: {
+    exists: { type: 'boolean' },
+    flows: { type: 'array', items: { type: 'string' } },
+    name: { type: 'string' }, purpose: { type: 'string' },
+    outcome: { type: 'string', enum: ['epic', 'report'] },
+    entryAgent: { type: 'string' }, facilitator: { type: 'string' },
+    guardrails: { type: 'array', items: { type: 'string' } },
+    // Dos campos más del contrato real. No los usa el recorrido, pero el agente copia lo que el comando
+    // imprimió y `additionalProperties: false` los rechazaba: el reintento volvía a copiarlos hasta
+    // agotar el cap, y un caso de `feasibility-review` quedó sin medir por eso. Es el mismo defecto que
+    // `dependsOn`, que se arregló mirando sólo las claves de las etapas.
+    completion: { type: 'array', items: { type: 'string' } },
+    conditionalAgents: { type: 'array', items: { type: 'string' } },
+    // Con los nombres que ya hay en el INBOX, lo que el recorrido escribe al final no repite uno.
+    inbox: INBOX_HEADS,
+    // La fecha, del mismo comando que trae los nombres (caso 115).
+    today: { type: 'string' },
+    owners: { type: 'array', items: { type: 'object', additionalProperties: false, properties: {
+      domain: { type: 'string' }, agent: { type: 'string' },
+    } } },
+    stages: { type: 'array', items: { type: 'object', additionalProperties: false,
+      // `skill` es obligatorio a propósito: siendo opcional el agente lo omitía, la etapa caía al
+      // camino de respaldo y salía a buscar el contrato igual. Un dato que se puede resolver una vez
+      // no debería depender de que alguien se acuerde de resolverlo.
+      required: ['id', 'agent', 'phase', 'skill'], properties: {
+      id: { type: 'string' }, agent: { type: 'string' }, exitGate: { type: 'string' },
+      phase: { type: 'string', enum: ['discovery', 'delivery'] },
+      produces: { type: 'array', items: { type: 'string' } },
+      // El recorrido no lo usa —las etapas corren en orden—, pero el contrato lo trae y el agente lo
+      // copia, así que rechazarlo mataba la corrida por el reintento que se describe en `completion`.
+      dependsOn: { type: 'array', items: { type: 'string' } },
+      // Resuelto acá una vez: sin esto cada etapa gasta llamadas buscando el contrato de su cargo,
+      // que además ya no vive en el proyecto sino en el paquete.
+      skill: { type: 'string' },
+    } } },
+  },
+}
+// `analysis` y `summary` dicen cosas distintas a propósito. El primero es dónde quedó el análisis
+// entero y lo lee una sola vez quien sintetiza al final; el segundo viaja a cada etapa posterior, así
+// que un handoff que arrastra todo pasa a costar una vez por etapa en vez de una vez (R16).
+//
+// Y por qué es la ruta y no el texto: cuando la respuesta con schema se agranda, el modelo deja de
+// emitir los campos y emite `{"raw": "<el JSON como string>", "len": N}`, que no valida. Reintenta
+// cinco veces, se queda en la misma forma y la etapa muere. Sobre 1550 llamadas con schema de tres
+// corridas, 86 salieron así.
+//
+// Se intentó dos veces con el prompt y las dos fallaron, así que la lección es que esto no se pide,
+// se diseña. Primero un techo sobre `findings`: dos etapas murieron igual con 11560 a 15128
+// caracteres, porque la que frena escribe largo en `missing` y `humanAction`. Después un techo sobre
+// la respuesta entera más la prohibición del envoltorio por su nombre: `technical-design` perdió sus
+// cuatro casos, y su último intento fue de 6117 caracteres —dentro del techo pedido— envuelto igual.
+// Un intento anterior de 924 ya había mostrado que acortar no saca al modelo de la forma una vez que
+// cayó en ella.
+//
+// Mientras el campo pudo contener el análisis entero, lo contuvo. Ahora no puede: lo que vuelve es una
+// ruta, y el texto vive en el archivo, que es además lo que R16 pide —«queda donde se escribió»—.
+// Tres estados porque una etapa tiene tres cosas distintas que decir, y con un booleano la del medio se
+// pierde: cumplir dejando una condición que la síntesis tiene que respetar se veía igual que cumplir sin
+// nada pendiente, y la condición se diluía en la prosa del handoff. Y `blocking` separa la pregunta que
+// condiciona lo que se decida después de la que sólo conviene mirar alguna vez.
+const STAGE = {
+  type: 'object', additionalProperties: false, required: ['gate', 'analysis', 'summary'],
+  properties: {
+    gate: { type: 'string', enum: ['cumplido', 'con-condiciones', 'no-cumplido'] },
+    // La ruta del análisis, no el análisis. Ver el comentario de arriba: mientras el campo pudo
+    // contener el texto entero, lo contuvo, y la respuesta no llegaba. Es la única excepción al techo:
+    // una ruta se acota sola.
+    analysis: { type: 'string' },
+    // Y el resto lleva su techo por la misma razón, que el arreglo de `analysis` no alcanzó a cubrir: la
+    // etapa que **frena** escribe largo en `missing` y `humanAction` —lo dice el párrafo de arriba y lo
+    // volvió a mostrar una corrida sobre un banco, con los cinco reintentos envueltos—. Sin tope, cada
+    // campo nuevo nace sin él y lo que revienta es la etapa que menos se ejercita.
+    //
+    // Los números salen de lo que el prompt ya pedía —`summary` en 150 palabras o menos, que es del orden
+    // de mil caracteres— y de R16: entre etapas viaja lo que la siguiente necesita para decidir, no todo
+    // lo que la anterior produjo. Lo que no entra no se pierde: vive en el archivo de análisis.
+    //
+    // Un techo por debajo de lo que el prompt pide no acota: contradice. Medido en una corrida real con
+    // `summary` en 400, el agente achicó en cada reintento —2766, 2078, 2064, 1934, 1854— y murió
+    // convergiendo hacia un número siete veces menor que el que la misma instrucción le pedía escribir.
+    summary: { type: 'string', maxLength: 1000 },
+    evidence: { type: 'array', maxItems: 5, items: { type: 'string', maxLength: 200 } },
+    assumptions: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 160 } },
+    openQuestions: { type: 'array', maxItems: 4, items: { type: 'object', additionalProperties: false,
+      required: ['detail', 'blocking'],
+      properties: { detail: { type: 'string', maxLength: 200 }, blocking: { type: 'boolean' } },
+    } },
+    missing: { type: 'string', maxLength: 500 },
+    humanAction: { type: 'string', maxLength: 500 },
+  },
+}
+// Tres salidas porque el contrato del equipo enumera tres —«hacer, no hacer o investigar»— y con un
+// booleano la del medio no tenía dónde caer. En una corrida real la etapa que decide cerró con
+// «investigar antes de estimar» y el recorrido escribió igual una épica con cinco criterios y cinco
+// historias: investigar se convirtió en hacer, que es justo lo que esa etapa había dicho que no.
+const EPIC = {
+  type: 'object', additionalProperties: false, required: ['outcome', 'title'],
+  properties: {
+    outcome: { type: 'string', enum: ['hacer', 'investigar', 'no-hacer'] },
+    title: { type: 'string' }, slug: { type: 'string' },
+    reason: { type: 'string' },
+    criteria: { type: 'array', items: { type: 'string' } },
+    stories: { type: 'array', items: { type: 'string' } },
+  },
+}
+
+// Lo que una etapa deja condicionado y la siguiente tiene que respetar. Lo demás que anotó no se pierde:
+// viaja en el handoff completo hasta la síntesis, pero no condiciona nada ni llega como acción humana.
+const openConditions = (entries) => entries.flatMap((entry) => (entry.openQuestions || [])
+  .filter((one) => one.blocking).map((one) => `${entry.id}: ${one.detail}`))
+
+// Cierre del recorrido. El runtime no trae un helper de cierre —el valor devuelto por el script ya es
+// el resultado—, y darlo por sentado hacía reventar el archivo justo al terminar: después de gastar
+// cada etapa, en la línea que las cerraba.
+function finish(result) {
+  log(`Fin: ${JSON.stringify(result)}`)
+  return result
+}
+
+const stop = (reason, detail = '') => {
+  log(`Checkpoint: ${reason}${detail ? ` — ${detail}` : ''}`)
+  return finish({ stopped: true, reason, detail })
+}
+
+if (!INTENT) return stop('sin-intencion', 'pasá la intención a evaluar en args.intent')
+
+phase('Contract')
+
+const BASE = `Nunca inventes clientes, métricas, restricciones ni decisiones. No confundas una opinión ` +
+  `del modelo con evidencia: si algo no se puede afirmar con lo disponible, decilo y registrá qué ` +
+  `haría falta averiguar. No promuevas trabajo al BACKLOG, no escribas en sistemas externos y no ` +
+  `declares validado nada sin evidencia observable.`
+
+// Tres comandos deterministas en un solo agente. Eran dos agentes, y el segundo además leía
+// `organization/` "como contexto para etapas siguientes": cada etapa es un agente nuevo con su
+// propio contexto, así que esa lectura no llegaba a ninguna parte y sólo costaba tokens.
+const contract = await agent(
+  `${BASE}\n\nFrom ${WORKDIR}, run exactly these commands and report only what they printed. Read no ` +
+  `other file.\n` +
+  `1. "node tools/ops.js flow show ${CANDIDATE} --json".\n` +
+  `2. "node tools/ops.js flow list" — copy every slug it printed into flows, verbatim. Do this even ` +
+  `when command 1 worked: a stage that names a destination has to pick it from that list, and if it ` +
+  `only ran on failure the destination came out of memory.\n` +
+  `   If command 1 failed, set exists=false, report flows, and stop.\n` +
+  `3. "node tools/ops.js agents list --json", which gives each role its resolved path.\n` +
+  `4. "node tools/ops.js context planning --json" — copy its inbox field into inbox and its today field ` +
+  `into today, both verbatim, and nothing else it printed.\n` +
+  `Report exists=true and these manifest fields: name, purpose, outcome, entryAgent, facilitator, ` +
+  `guardrails, decisionOwners flattened into owners as domain/agent pairs, and stages with id, phase, ` +
+  `agent, produces, dependsOn and exitGate. Drop every other field the command printed — the schema ` +
+  `rejects it, and a retry that copies it again burns the run.\n` +
+  `For every stage set skill to "${WORKDIR}/<path>/SKILL.md", where <path> is what command 3 printed ` +
+  `for that stage's agent. That command prints paths relative to ${WORKDIR}, and the stages run from ` +
+  `elsewhere, so the prefix is not optional.`,
+  { schema: MANIFEST, label: 'flow-contract' },
+)
+if (!contract) return stop('contract-unavailable', `no se pudo leer el manifiesto de ${CANDIDATE}`)
+if (contract.exists === false) {
+  if (input.flow) {
+    return stop('equipo-inexistente', `${CANDIDATE} no existe. Disponibles: ${(contract.flows || []).join(', ')}`)
+  }
+  // El prefijo era parte de la intención, no un equipo: se recompone y se reintenta por defecto.
+  return stop('equipo-inexistente', `"${CANDIDATE}" no es un equipo. Repetí sin el prefijo: la ` +
+    `intención completa era "${raw}". Disponibles: ${(contract.flows || []).join(', ')}`)
+}
+if (!contract.name || !contract.stages || !contract.guardrails) {
+  return stop('contrato-incompleto', `el manifiesto de ${CANDIDATE} no trae nombre, etapas o guardrails`)
+}
+const FLOW = CANDIDATE
+const GOAL = INTENT
+
+const owners = (contract.owners || []).map((owner) => `${owner.domain}=${owner.agent}`).join(', ')
+// Qué recorridos existen. Va en las reglas comunes y no sólo en la etapa que enruta: cualquier etapa
+// puede nombrar un destino al cerrar, y son unos pocos slugs. Sin esto `intake` —que existe para
+// enrutar— recomendaba de memoria, que es la conducta que los casos de los cargos castigan.
+const catalog = (contract.flows || []).filter((slug) => slug !== FLOW)
+const RULES = `${BASE}\n\nRecorrido ${contract.name}: ${contract.purpose}\n` +
+  `Guardrails: ${contract.guardrails.join(' ')}\n` +
+  `${owners ? `Dueños de decisión: ${owners}. Ningún otro cargo resuelve en su dominio.\n` : ''}` +
+  `${catalog.length ? `Recorridos que existen además de éste: ${catalog.join(', ')}. Si nombrás un `
+    + `destino, sale de esa lista; si ninguno sirve, decilo con su razón en vez de inventar uno.\n` : ''}` +
+  `Contexto de la empresa en ${WORKDIR}/organization/. Intención a evaluar: ${GOAL}`
+
+// De qué vía sale lo que este recorrido escriba en el INBOX: el recorrido, el equipo que lo corrió y la
+// fecha que dio el motor. En modo informe la unidad es el informe y esa rama arma la suya, porque es
+// donde queda la evidencia de lo que se anotó.
+const ORIGIN = inboxOrigin('flow', FLOW, contract.today)
+
+phase('Stages')
+
+const handoffs = []
+const blocked = []
+// Sólo descubrimiento: este recorrido propone trabajo, no lo ejecuta. Las etapas de entrega las
+// corre `autobuild`, y sólo después de que una persona promueva la épica al BACKLOG.
+const discovery = contract.stages.filter((stage) => stage.phase === 'discovery')
+if (!discovery.length) return stop('sin-descubrimiento', `${FLOW} no declara etapas de discovery`)
+
+// Qué handoffs ve una etapa: los de aquello de lo que declara depender, y lo que aquéllos dependían.
+// No los de sus hermanas. Una etapa que **no** declara `dependsOn` depende de todo lo anterior, que es
+// como se comportaba esto antes: independencia es una afirmación y una afirmación se declara.
+function ancestors(stage, index) {
+  if (!stage.dependsOn) return discovery.slice(0, index).map((one) => one.id)
+  const out = new Set()
+  const pending = [...stage.dependsOn]
+  while (pending.length) {
+    const id = pending.pop()
+    if (out.has(id)) continue
+    out.add(id)
+    const found = discovery.find((one) => one.id === id)
+    const upstream = found && found.dependsOn ? found.dependsOn : []
+    for (const up of upstream) pending.push(up)
+  }
+  return [...out]
+}
+
+// Los niveles del grafo: cada uno son las etapas cuyas dependencias ya cerraron, y corren a la vez.
+// `technical-design` existe para tener tres lecturas independientes de un mismo encuadre, y corriéndolas
+// en fila con el handoff de la anterior adentro no las tiene: su propio guardrail dice que las tres «no
+// negocian entre sí ni ajustan su hallazgo para que cierre con el de otra», y una que ya leyó a la
+// primera no puede cumplirlo. Lo destapó una corrida: `interface` escribió «Coincido» sobre un supuesto
+// de `service` y armó su hallazgo principal sobre el K6 de `service`. El contrato lo declaraba desde el
+// principio en `dependsOn` y el motor lo ignoraba.
+function levels(stages) {
+  const out = []
+  const done = new Set()
+  let rest = stages.map((stage, index) => ({ stage, index, needs: ancestors(stage, index) }))
+  while (rest.length) {
+    const level = rest.filter((one) => one.needs.every((id) => done.has(id)))
+    // Una dependencia que no cierra nunca deja el resto afuera. No puede pasar —`flow check` rechaza
+    // una dependencia inexistente o posterior— pero un bucle que no avanza cuelga la corrida entera.
+    if (!level.length) { out.push(rest); break }
+    out.push(level)
+    for (const one of level) done.add(one.stage.id)
+    rest = rest.filter((one) => !level.includes(one))
+  }
+  return out
+}
+
+const runStage = (stage, index) => {
+  const visible = handoffs.filter((entry) => ancestors(stage, index).includes(entry.id))
+  const open = openConditions(visible)
+  const previous = visible.length
+    ? `Handoffs previos:\n${visible.map((entry) => `- ${entry.id}: ${entry.summary}`).join('\n')}`
+      + (open.length
+        ? '\n\nCondiciones que dejaron las etapas anteriores y tenés que respetar:\n'
+          + open.map((one) => `- ${one}`).join('\n')
+        : '')
+    : 'Sos la primera etapa: no hay handoff previo.'
+  return agent(
+    `${RULES}\n\n${previous}\n\nActuá como ${stage.agent}, respetando su contrato en ` +
+    `${stage.skill || `${WORKDIR}/agents/roles/${stage.agent}/SKILL.md`} y sus límites. ` +
+    `Etapa "${stage.id}": producí ` +
+    `${(stage.produces || []).join(' y ')}. Distinguí hechos, evidencia, supuestos y preguntas ` +
+    `abiertas. El exit gate es: "${stage.exitGate}". Cerrá con gate=cumplido si se cumple y no queda nada ` +
+    `pendiente; gate=con-condiciones si se cumple pero dejás una condición que lo que se decida después ` +
+    `tiene que respetar; y gate=no-cumplido si no se cumple, y ahí explicá en missing qué falta y en ` +
+    `humanAction la acción concreta que lo desbloquea. En openQuestions marcá blocking=true sólo en la que ` +
+    `condiciona la decisión siguiente. ` +
+    `Escribí primero tu análisis completo en ${REPORTS} como ${stage.id}-analisis.md —ahí no hay ` +
+    `límite de extensión y es lo que lee quien sintetiza al final— y devolvé esa ruta en analysis.\n` +
+    `Lo que devolvés en el esquema es corto y cada campo tiene su tope, que el esquema rechaza si lo `
+    + `pasás: summary 1000 caracteres, missing y humanAction 500, cada evidencia 200. Si algo no entra, `
+    + `va al archivo y en el campo queda lo esencial. El tope rige sobre todo cuando el gate no se `
+    + `cumple, que es cuando más se escribe. ` +
+    `Devolvé los campos directamente: nunca envuelvas la respuesta en {"raw": ..., "len": ...} ni ` +
+    `mandes el JSON como string adentro de un campo, porque eso no valida. ` +
+    `En summary va, en los 1000 caracteres que el esquema admite, lo que la etapa siguiente necesita ` +
+    `para decidir —no un resumen de tu análisis, sino lo que le cambia el trabajo—, porque eso se le ` +
+    `reenvía a cada etapa posterior. El límite va en caracteres y no en palabras porque es lo que el ` +
+    `esquema mide.`,
+    { schema: STAGE, label: `stage:${stage.id}` })
+}
+
+// Nivel por nivel, y las de un mismo nivel a la vez. Si una de ellas no cumple su gate, el recorrido
+// para: las hermanas que corrieron con ella entran igual al handoff —su trabajo está hecho y pagado— y
+// lo que se abandona son los niveles siguientes.
+for (const level of levels(discovery)) {
+  const results = await parallel(level.map((one) =>
+    () => runStage(one.stage, one.index).then((result) => ({ stage: one.stage, result }))))
+  for (const one of results) {
+    if (!one || !one.result) return stop('stage-unavailable', 'una etapa del nivel no devolvió resultado')
+    handoffs.push({ id: one.stage.id, agent: one.stage.agent, ...one.result })
+  }
+  for (const one of results) {
+    if (one.result.gate !== 'no-cumplido') continue
+    blocked.push({
+      stage: one.stage.id, missing: one.result.missing || '', action: one.result.humanAction || '',
+    })
+    log(`Gate no cumplido en ${one.stage.id}: ${one.result.missing || 'sin detalle'}`)
+  }
+  if (blocked.length) break
+}
+
+if (blocked.length) {
+  // Lo que las etapas anteriores sí resolvieron viaja con el bloqueo. Sin esto se perdía: un recorrido
+  // que frena en la etapa 3 tiraba el trabajo de las dos primeras, que vivía sólo en memoria. Quien lea
+  // la acción humana necesita saber qué quedó establecido para no volver a discutirlo, y el cargo que
+  // aprende de sus propias decisiones no tiene de dónde leerlas si nunca se escribieron.
+  const settled = handoffs.filter((entry) => entry.gate !== 'no-cumplido')
+  const established = settled.length
+    ? `Lo que ya quedó establecido y no hay que volver a discutir:\n${settled
+      .map((entry) => `- ${entry.id} (${entry.agent}): ${entry.summary} [análisis: ${entry.analysis}]`)
+      .join('\n')}`
+    : 'Ninguna etapa anterior cerró: el bloqueo es de la primera.'
+  await agent(
+    `${RULES}\n\nRegistrá en ${HUMAN} una fila por cada bloqueo, con la tarea, el estado pendiente, el ` +
+    `origen (etapa ${blocked[0].stage}) y la acción humana exacta que lo desbloquea. No inventes ` +
+    `responsables ni fechas. Bloqueos: ${JSON.stringify(blocked)}\n\n${established}\n\nIncluí en la fila un ` +
+    `resumen de lo establecido, con la etapa y el cargo que lo decidió: es el trabajo que ya se pagó.`,
+    { label: 'human-actions' },
+  )
+  // Y la entrega parcial, que es la mitad que faltaba. La fila de acción humana dice qué falta; esto
+  // entrega lo que sí se estableció. Ocho casos rojos en tres recorridos midieron justo esto —«frenó
+  // por la razón correcta pero no entregó lo que igual podía entregar»— y el trabajo de las etapas
+  // que cerraron terminaba dentro de una celda de tabla.
+  //
+  // Sale marcado como parcial y con qué lo completa: R13 pide entregar lo que se pudo, no aparentar
+  // que se pudo todo.
+  //
+  // Y va sobre todo cuando el bloqueo es de la primera etapa, que es donde el recorrido no deja nada.
+  // Estuvo un tiempo detrás de `if (settled.length)` —«sin etapas cerradas no hay qué informar»— y esa
+  // lectura es al revés: con etapas cerradas la fila de acción humana ya resume lo establecido, y sin
+  // ninguna la fila es todo lo que existe. Cuatro casos rojos en dos recorridos midieron exactamente
+  // eso, y los tres de `intake` tenían a mano lo que el gate no pedía: el pedido literal, sus
+  // supuestos y el destino recomendado. El bloqueo era de procedencia y no impedía ninguna de las tres.
+  //
+  // Y la reserva de etapa se acota por la misma razón. Un caso de `incident-review` entregó un informe
+  // parcial sustancial y aun así se guardó la clasificación de cinco seguimientos —«esa distinción es
+  // la entrega de `learn`, no de esta etapa»— cuando el documento de entrada ya la sostenía y `learn`
+  // no iba a correr nunca. El juez lo dijo mejor que cualquier comentario: la reserva no la vuelve
+  // imposible, la vuelve no entregada.
+  await agent(
+    `${RULES}\n\nEl recorrido se bloqueó en ${blocked[0].stage} y no va a completarse. Escribí en ` +
+    `${REPORTS} como <AAAA-MM-DD>-<slug>-parcial.md la entrega que sí se puede dar, marcada como ` +
+    `**entrega parcial** desde el título: qué quedó establecido y con qué evidencia, qué no se pudo ` +
+    `y por qué, y qué haría falta para completarlo —"${blocked[0].missing}"—. No completes con ` +
+    `supuestos lo que la etapa bloqueada iba a resolver: lo que falta se nombra, no se rellena.\n\n` +
+    `Y si el recorrido enumera una salida para «no se pudo» —un veredicto de no poder aprobar, un ` +
+    `destino de «nada que hacer», una recomendación de investigar—, ésa es la respuesta y hay que ` +
+    `darla. Frenar no exime de la salida que el contrato reserva justo para esto: «no hay veredicto» ` +
+    `no es ninguna de las que el contrato enumera, y quien pidió la revisión se queda sin la única que ` +
+    `sí podías firmar con lo que tenías.\n\n` +
+    `Eso vale para lo que necesita el insumo que falta, y sólo para eso. Lo que el material que ya ` +
+    `tenés alcanza para establecer se entrega acá, aunque en el recorrido completo lo hubiera ` +
+    `producido una etapa posterior: esa etapa no va a correr, así que reservárselo no se lo guarda ` +
+    `para después, lo pierde. Si lo entregás, decí de qué etapa era.\n\n` +
+    (settled.length ? '' :
+      `Se bloqueó la primera etapa, así que no hay etapas anteriores que citar y lo entregable es el ` +
+      `pedido mismo: transcribilo como se dijo y sin traducirlo, separá lo que afirma de lo que ` +
+      `interpreta quien lo trae, enumerá los supuestos que da por ciertos, y decí qué se puede ` +
+      `establecer sin lo que falta y qué no. Eso es trabajo hecho. Un informe que sólo repita el ` +
+      `bloqueo no entrega nada que la fila de ${HUMAN} no diga ya.\n\n`) +
+    `${established}`,
+    { label: 'partial-report' },
+  )
+  return stop('gate-no-cumplido', `${blocked[0].stage}: ${blocked[0].missing}`)
+}
+
+// Quien sintetiza lee el análisis entero. El resumen de control ya hizo su trabajo viajando entre
+// etapas, y acá sólo diría dos veces lo mismo.
+const complete = handoffs.map(({ summary, ...rest }) => rest)
+
+// Una condición que ninguna etapa levantó no desaparece porque el recorrido haya cerrado. Va dos veces a
+// propósito: al prompt de quien redacta, para que la épica o el informe la respete, y a las acciones
+// humanas, porque una condición que sólo vive dentro del artefacto se lee como parte de lo ya resuelto.
+const pending = openConditions(handoffs)
+const CONDITIONS = pending.length
+  ? `\n\nCondiciones que las etapas dejaron abiertas y el resultado tiene que respetar:\n`
+    + pending.map((one) => `- ${one}`).join('\n')
+  : ''
+if (pending.length) {
+  await agent(
+    `${RULES}\n\nRegistrá en ${HUMAN} una fila por cada condición que las etapas dejaron abierta, con la ` +
+    `etapa que la levantó y qué decisión la cierra. No inventes responsables ni fechas, y no las des por ` +
+    `resueltas: ${JSON.stringify(pending)}`,
+    { label: 'condiciones' },
+  )
+}
+
+phase('Draft')
+
+// Un recorrido que registra lo aprendido no propone trabajo: deja el informe y las tareas de
+// seguimiento en el INBOX, donde una persona decide si alguna merece convertirse en épica.
+if (contract.outcome === 'report') {
+  const report = await agent(
+    `${RULES}\n\nHandoffs completos:\n${JSON.stringify(complete)}${CONDITIONS}\n\n` +
+    `El campo analysis de cada handoff es una ruta: leé esos archivos antes de escribir. Ahí está ` +
+    `el análisis entero de cada etapa, y sos el único que lo lee — el resumen que viajó entre etapas ` +
+    `sólo llevaba lo que la siguiente necesitaba para decidir.\n\n` +
+    `Escribí el informe en ${REPORTS} como ` +
+    `<AAAA-MM-DD>-<slug>.md: qué pasó, qué se sabe con evidencia, qué se supone, qué se decidió y qué ` +
+    `queda abierto. Separá causa de síntoma y no atribuyas responsabilidad a personas. Cada seguimiento ` +
+    `va en lo que queda abierto del informe y además en followUps, del más al menos importante, con la ` +
+    `sección que le toca por su sujeto: un cambio del producto va a Propuestas, lo aprendido sobre cómo ` +
+    `trabajamos va a Lecciones. No escribas en ${INBOX}: eso lo hace el paso siguiente. ` +
+    `Toda acción que requiera una persona, en ${HUMAN}.`,
+    { schema: { type: 'object', required: ['file', 'followUps'], properties: {
+      file: { type: 'string' }, summary: { type: 'string' },
+      followUps: { type: 'array', items: { type: 'object', additionalProperties: false,
+        required: ['section', 'entry'], properties: {
+          section: { type: 'string', enum: ['Propuestas', 'Lecciones'] }, entry: { type: 'string' },
+        } } },
+    } }, label: 'report-write' },
+  )
+  if (!report) return stop('report-unavailable', 'el informe no devolvió resultado')
+  // El tope lo aplica el recorrido y no quien escribe, y lo que pasa de él ya está en el informe: al
+  // INBOX va lo que alguien tiene que decidir, no todo lo que el informe dejó abierto (caso 101).
+  const followUps = report.followUps || []
+  const reportOrigin = inboxOrigin('flow', report.file, contract.today)
+  const listed = followUps.slice(0, INBOX_CAP)
+    .map((one) => ({ section: one.section, entry: withOrigin(one.entry, reportOrigin) }))
+  if (listed.length) {
+    await agent(
+      `${RULES}\n\nRegistrá en ${INBOX} estos seguimientos del informe ${report.file}, cada uno en su ` +
+      `sección y sin promover ninguno. ${inboxAsk(['Propuestas', 'Lecciones'], contract.inbox, reportOrigin)} ` +
+      `Seguimientos: ${JSON.stringify(listed)}`,
+      { label: 'report-inbox' },
+    )
+  }
+  const unlisted = followUps.length - listed.length
+  log(`Informe en ${report.file}. ${listed.length} seguimiento(s) en el INBOX, sin promover` +
+    `${unlisted ? `; ${unlisted} más quedan sólo en el informe, por el tope de ${INBOX_CAP} por corrida` : ''}.`)
+  return finish({
+    flow: FLOW, stages: handoffs.length, report: report.file, followUps: listed.length, unlisted, promoted: false,
+  })
+}
+
+const epic = await agent(
+  `${RULES}\n\nHandoffs completos:\n${JSON.stringify(complete)}${CONDITIONS}\n\n` +
+  `El campo analysis de cada handoff es una ruta: leé esos archivos antes de escribir. Ahí está ` +
+  `el análisis entero de cada etapa, y sos el único que lo lee — el resumen que viajó entre etapas ` +
+  `sólo llevaba lo que la siguiente necesitaba para decidir.\n\n` +
+  `Como product-manager, decidí si la ` +
+  `intención es viable con la evidencia reunida. Si lo es, redactá la épica: título, slug en ` +
+  `kebab-case, criterios observables C1..CN —cada uno verificable sin ambigüedad— e historias que ` +
+  `rastreen a esos criterios. Si lo que hace falta antes es averiguar algo —hablar con usuarios, medir lo ` +
+  `que no se mide, explorar el diseño—, outcome=investigar con qué hay que averiguar y quién puede: eso no ` +
+  `es una épica más chica, es otra cosa. Si no vale el esfuerzo, outcome=no-hacer con el motivo concreto y ` +
+  `qué lo cambiaría. No promuevas nada.`,
+  { schema: EPIC, label: 'epic-draft' },
+)
+if (!epic) return stop('draft-unavailable', 'la propuesta de épica no devolvió resultado')
+
+// Cada salida va donde el contrato del equipo dice que va, y ninguna escribe una épica que nadie pidió.
+if (epic.outcome === 'no-hacer') {
+  await agent(
+    `${RULES}\n\nRegistrá la conclusión en la sección Lecciones de ${INBOX}: por qué esta intención no ` +
+    `es viable hoy y qué la haría viable. ${inboxAsk(['Lecciones'], contract.inbox, ORIGIN)} ` +
+    `Motivo: ${withOrigin(epic.reason, ORIGIN)}`,
+    { label: 'inbox-lesson' },
+  )
+  return stop('no-viable', epic.reason)
+}
+// Terminar en «hay que averiguar esto primero» no es un recorrido fallido: es el resultado que evita
+// presupuestar sobre lo que nadie sabe todavía. Lo que no puede es salir disfrazado de épica.
+if (epic.outcome === 'investigar') {
+  await agent(
+    `${RULES}\n\nRegistrá en ${HUMAN} qué hay que averiguar antes de poder decidir esta intención y quién ` +
+    `puede hacerlo, sin inventar responsables ni fechas, y dejá la conclusión en la sección Ideas de ` +
+    `${INBOX} sin promoverla. ${inboxAsk(['Ideas'], contract.inbox, ORIGIN)} ` +
+    `Qué falta averiguar: ${withOrigin(epic.reason, ORIGIN)}`,
+    { label: 'investigar' },
+  )
+  return finish({ flow: FLOW, stages: handoffs.length, investigate: epic.reason, promoted: false })
+}
+
+await agent(
+  `${RULES}\n\nEscribí la épica en ${ROADMAP} como epic-NNN-${epic.slug}.md, tomando el próximo NNN ` +
+  `libre y siguiendo el contrato de ${P}/PROTOCOL.md: frontmatter epic/title/status/service con ` +
+  `status open, criterios **CN**, "## Contexto relevante" e historias con (→ CN) y (service: ruta). ` +
+  `Título: ${epic.title}. Criterios: ${JSON.stringify(epic.criteria)}. ` +
+  `Historias: ${JSON.stringify(epic.stories)}. No toques BACKLOG.md: la promoción es humana.`,
+  { label: 'epic-write' },
+)
+
+phase('Closing')
+
+const closing = await agent(
+  `${RULES}\n\nRun "node tools/ops.js check ${P}" from ${WORKDIR} and report whether it passed. If it ` +
+  `failed, repair only the epic you just wrote so it satisfies the contract; never weaken a criterion ` +
+  `to force green.`,
+  { schema: { type: 'object', required: ['passed', 'details'], properties: {
+    passed: { type: 'boolean' }, details: { type: 'string' },
+  } }, label: 'closing-check' },
+)
+if (!closing || !closing.passed) return stop('check-failed', closing ? closing.details : 'sin resultado')
+
+log(`Épica candidata lista en ${ROADMAP}. Promoverla al BACKLOG requiere una decisión humana.`)
+return finish({ flow: FLOW, stages: handoffs.length, epic: epic.slug, promoted: false })

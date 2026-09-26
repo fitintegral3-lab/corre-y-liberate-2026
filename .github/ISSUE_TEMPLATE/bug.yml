@@ -1,0 +1,39 @@
+name: Bug
+description: Algo del sitio no se comporta como debería
+labels: [bug]
+body:
+  - type: textarea
+    id: que-pasa
+    attributes:
+      label: Qué pasa
+      description: Qué viste, y qué esperabas ver en su lugar.
+    validations:
+      required: true
+
+  - type: textarea
+    id: como-reproducirlo
+    attributes:
+      label: Cómo reproducirlo
+      placeholder: |
+        1. Entrar a ...
+        2. Bajar hasta ...
+        3. Ver que ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: donde
+    attributes:
+      label: Dónde
+      options:
+        - Producción (main)
+        - Preview de development
+        - Local
+    validations:
+      required: true
+
+  - type: input
+    id: dispositivo
+    attributes:
+      label: Dispositivo y navegador
+      placeholder: iPhone 14, Safari · Windows, Chrome 131

@@ -1,38 +1,56 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@font-face {
-  font-family: 'MyriadPro';
-  src: url('/fonts/MyriadPro-Regular.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* ---------------------------------------------------------------------------
+ * Tokens de diseno.
+ *
+ * Los colores de marca dejan de ser literales sueltos (`bg-[#cc420d]` repetido
+ * en cada seccion) y pasan a ser utilidades de Tailwind: `bg-brand-orange`,
+ * `text-brand-orange`, `hover:bg-brand-orange-bright`. Cambiar el naranja de la
+ * marca vuelve a ser una linea, no un buscar-y-reemplazar.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-brand-orange: #cc420d;
+  --color-brand-orange-bright: #ff5512;
+  --color-brand-orange-deep: #b53708;
+  --color-brand-amber: #ff7a00;
+  --color-brand-purple: #381247;
+  --color-brand-grey: #ababb2;
+  --color-ink: #111111;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #20ba59;
 
-:root {
-  --naranja-oscuro: #cc420d;
-  --morado-oscuro: #381247;
-  --gris: #ababb2;
-  --blanco: #ffffff;
-  --negro: #000000;
+  --font-display: var(--font-barlow), 'Montserrat', sans-serif;
+  --font-sans: var(--font-myriad), 'Montserrat', -apple-system, sans-serif;
+
+  /* Ancho del lienzo del diseno original. */
+  --container-canvas: 1366px;
 }
 
 html {
   scroll-behavior: smooth;
+  /* Altura del header pegajoso: sin esto el ancla queda debajo de la barra. */
   scroll-padding-top: 80px;
 }
 
 body {
   background-color: #ffffff;
-  color: #111111;
-  font-family: 'MyriadPro', 'Montserrat', sans-serif;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Authentic Athletic Editorial Typography matching the client's design */
+/* ---------------------------------------------------------------------------
+ * Tipografia editorial deportiva.
+ *
+ * Van sin `@layer` a proposito: asi ganan sobre las utilidades de Tailwind, que
+ * es como se comporta el diseno hoy (por ejemplo, el `line-height` de
+ * `.font-athletic` manda sobre el de `text-6xl`). Meterlas en una capa
+ * invertiria esa precedencia y moveria titulos en toda la pagina.
+ * ------------------------------------------------------------------------- */
 .font-athletic {
-  font-family: 'Barlow', 'Montserrat', sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-style: italic;
   text-transform: uppercase;
@@ -41,7 +59,7 @@ body {
 }
 
 .font-athletic-bold {
-  font-family: 'Barlow', 'Montserrat', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-style: italic;
   text-transform: uppercase;
@@ -49,24 +67,60 @@ body {
 }
 
 .font-athletic-semibold {
-  font-family: 'Barlow', 'Montserrat', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-style: italic;
   text-transform: uppercase;
 }
 
 .font-body {
-  font-family: 'MyriadPro', 'Montserrat', -apple-system, sans-serif;
+  font-family: var(--font-sans);
 }
 
-/* Custom scrollbar */
+/* ---------------------------------------------------------------------------
+ * Foco visible.
+ *
+ * El preflight de Tailwind quita el contorno que el navegador dibuja al
+ * enfocar y no pone nada en su lugar, asi que navegar con teclado deja de
+ * verse. `:focus-visible` solo se activa con teclado: quien usa el mouse no
+ * ve ningun anillo.
+ *
+ * Son dos anillos y no uno porque el sitio alterna fondos: el blanco se ve
+ * sobre las fotografias y el naranja de la premiacion; el naranja de afuera
+ * se ve sobre las secciones blancas.
+ * ------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--color-brand-orange);
+}
+
+/* Barra de desplazamiento en los colores de la marca. */
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: var(--color-ink);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #cc420d;
+  background: var(--color-brand-orange);
   border-radius: 4px;
+}
+
+/* Quien pidio menos movimiento no deberia recibir ninguno. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

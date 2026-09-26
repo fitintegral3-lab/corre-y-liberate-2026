@@ -1,0 +1,38 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    target-branch: development
+    open-pull-requests-limit: 5
+    groups:
+      # Un PR por familia y no uno por paquete: Next, React y sus tipos suben
+      # juntos o no suben.
+      next:
+        patterns: ['next', 'eslint-config-next', '@next/*']
+      react:
+        patterns: ['react', 'react-dom', '@types/react', '@types/react-dom']
+      dev-tooling:
+        patterns: ['eslint*', 'prettier*', 'vitest*', 'husky', 'lint-staged', '@commitlint/*']
+    commit-message:
+      prefix: build
+      include: scope
+
+  - package-ecosystem: npm
+    directory: /ops
+    schedule:
+      interval: monthly
+    target-branch: development
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: build
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    target-branch: development
+    commit-message:
+      prefix: ci

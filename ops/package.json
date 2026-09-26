@@ -1,0 +1,8 @@
+{
+  "name": "ops",
+  "private": true,
+  "version": "0.0.0",
+  "devDependencies": {
+    "@ingeniomaps/cauce": "0.97.0"
+  }
+}

@@ -1,0 +1,135 @@
+# Protocolo agnóstico de ejecución
+
+Es la fuente de verdad del proceso para cualquier runner. Ninguna herramienta concreta puede relajar estas
+invariantes.
+
+## Contratos
+
+- Épica: frontmatter `epic/title/status/service`; criterios `**CN**`; historias con slug, `(→ CN)` y
+  `(service: ruta)`.
+- Hito: `## Hito slug — Título`.
+- Tarea: `- [ ] **slug** [express|directo|lite|full] — descripción. _Aceptación: observable._ (service: ruta) (cast: quien-entrega → quien-revisa, otro)`;
+  puede heredar aceptación usando `(→ CN) (epic: NNN)` y declarar `(depende: slug, otro)`. Lane y cast son
+  opcionales: sin ellos la tarea está sin clasificar, que es un estado y no un error. Una tarea con
+  dependencias no se ofrece ni se toma hasta que todas estén en DONE.
+  Una condición se comprueba en Verify, que corre antes que Commit y que Done: la que nombre el commit, el
+  reclamo, `done/` o la evidencia registrada pide algo que todavía no existe cuando se la mira, y su lugar
+  son los campos `tests:`, `qa:` y `commit:` de DONE, que ya lo exigen. `check` lo avisa sobre la cola. Si
+  aun así corresponde dejarla ahí, se declara en la propia condición con `(fuera de verify: <razón>)` —la
+  misma salida explícita que `(sin partir: …)` y que `n/a — razón`— y deja de avisarse.
+- DONE: un archivo por tarea cerrada, `done/<slug>.md`, con su entrada `[x]` y los campos `acept:`,
+  `fecha:` en AAAA-MM-DD, `done:`, `qa:`, `tests:`, `commit:` y `lane:`. `lane:` repite el carril con el
+  que la tarea corrió —`express`, `directo`, `lite`, `full`— o `sin clasificar` si su línea no lo
+  declaraba, y existe porque el carril decide qué fases corren y su línea del BACKLOG se borra al cerrar:
+  sin él, si una tarea recibió la ceremonia que le tocaba sólo lo sabe quien estuvo en la sesión.
+  `check` avisa cuántas entradas no lo traen y falla si trae un valor que no existe. `review:` dice qué
+  pasó con la revisión —el veredicto y quién revisó— o `n/a — razón` cuando no corrió; es la dimensión con
+  la que OPS-006 dice que se mide si el carril elegido fue el correcto, y `check` cruza los dos: un carril
+  que convoca revisor con una revisión que no corrió es la ADR incumplida, escrita en el propio registro. La fecha es la del cierre, y es lo que
+  ordena una evidencia que ya no depende de su posición dentro de un archivo. `tests:` enlaza cada criterio
+  mediante `CN → prueba`; usa `A → prueba` cuando no hay épica o `n/a — razón` si no existe una
+  superficie ejecutable. `decisions:` es opcional y, si aparece, cita `[fuente: ...]` o
+  `[supuesto: ...]`. `commit:` apunta a `<sha> <asunto>`, o a `n/a — razón` cuando la tarea no
+  produce commit.
+- Acción humana: fila `| tarea | estado | origen | acción y condición de desbloqueo |`, con el estado
+  en el vocabulario cerrado `pendiente | resuelta` —la fecha puede ir detrás—. Mientras la fila no
+  esté resuelta, su tarea no se toma; un estado fuera del vocabulario es un error de `check` y no un
+  bloqueo silencioso.
+- Recurrencia: fila `| qué | cada | desde | tarea y aceptación |` bajo `## Recurrencias`, con `cada` en
+  el vocabulario cerrado `mensual | trimestral | semestral | anual` y la celda de tarea escrita como la
+  cola de su línea de BACKLOG. Vencer no bloquea: cada vuelta se promueve con el período en el slug
+  —`<qué>-AAAA-MM`— y esa promoción la escribe una persona. Postergar se registra bajo
+  `## Postergaciones` con `- **qué** AAAA-MM-DD — razón`.
+- Reclamo: `claims/<tarea>.md` con frontmatter `task/owner/runner/started/service`; el nombre del
+  archivo es el slug que reserva, y por eso un `task` que diga otra cosa es un error. `owner` dice a
+  quién preguntarle y `runner` decide de quién es: con varios agentes en una máquina la persona es
+  la misma y el árbol de trabajo no.
+- WIP activo: frontmatter y checklist en `wip/<runner>.md`; inactivo cuando el archivo no está. Es
+  local y no viaja por git: existe para recuperar la sesión de quien lo escribió, y es uno por runner
+  porque una instancia sidecar la comparten todos los agentes de esa máquina.
+
+## Gates de arranque
+
+1. Si existe `AWAITING_REVIEW.md`, parar y mostrar la acción que contiene.
+2. Si tu WIP está activo, la tarea es ésa: es el mutex del runner, y sólo se lee el propio.
+3. Si WIP está activo tras una interrupción confirmada, verificar los pasos `[x]` en disco y continuar
+   desde el primer `[ ]`; no replanear.
+4. Si WIP apunta a una tarea ya en DONE y fuera de BACKLOG, reparar el cierre dejando WIP en IDLE.
+
+## Máquina por tarea
+
+1. Triage: inspeccionar estado y cambios existentes.
+2. Pick: primera tarea no bloqueada ni reclamada por otro runner, recorriendo los hitos en orden;
+   reclamarla antes de empezar y empujar ese reclamo, que sin empujar no reserva nada.
+3. Classify: si la tarea no declara lane y cast, decidirlos y escribirlos en su línea.
+4. Ready: exigir aceptación concreta y decisiones resueltas.
+5. Decompose: dividir trabajo mayor a `maxTaskHours` o con más de cinco condiciones de aceptación.
+6. Plan y Critique: entender contexto, escribir plan y atacarlo una vez.
+7. WIP: persistir el plan aprobado antes del primer cambio.
+8. Build: alcance exacto, progreso tildado, RED/GREEN/VERIFY aplicable.
+9. Review: calidad y seguridad según la superficie modificada.
+10. Verify: ejecutar los gates declarados por el servicio y registrar exit codes.
+11. QA: probar la aceptación por el camino que usa un consumidor real.
+12. Commit: stage explícito y commits verificables, uno por naturaleza del diff.
+13. Done: sacar la tarea de la cola, escribir su evidencia en `done/<slug>.md`, limpiar WIP, soltar
+    el reclamo y cerrar la épica si no le queda ninguna historia abierta.
+14. Cierre: check verde, deuda residual al INBOX y checkpoint entre hitos.
+
+## Lanes
+
+El lane dice cuánta ceremonia merece la tarea y el cast quiénes la miran. Son una sola decisión —la
+clasificación—, se toma al escribir la tarea y viaja en su línea, así que se decide una vez y no una
+vez por corrida. La tarea que llega sin ella se clasifica antes de ejecutarse.
+
+- `express`: la aceptación nombra un valor literal y el resultado no lo mira nadie —un typo, un umbral
+  interno, un renombre—; WIP, Build, Verify, Commit y Done.
+- `directo`: igual de mecánico, pero cambia una superficie que alguien ve; agrega el review del cargo
+  que nombra el cast.
+- `lite`: comportamiento nuevo dentro de un servicio con superficie conocida; agrega Ready, Plan y QA.
+- `full` o sin tag: cruza contratos entre servicios, datos, autenticación o permisos, o la aceptación
+  tiene un borde sin decidir; todas las fases.
+
+El lane reduce ceremonia, nunca seguridad, aceptación ni evidencia: Verify y el WIP corren en los
+cuatro. Lo que decide el carril es la superficie del cambio y no su tamaño en líneas — un `if` en el
+chequeo de permisos es `full`, y un componente entero de presentación puede ser `directo`.
+
+Escribir la línea es también contrastarla. Declara cuatro cosas —qué hace, en qué carril, quién entrega y
+revisa, con qué se comprueba— y las cuatro salen de la misma mano en el mismo acto, así que nada las cruza
+después. Releerlas no encuentra el hueco: una aceptación incompleta se lee perfecta, porque todo lo que
+dice es cierto.
+
+Antes de dar la tarea por escrita se recorre su descripción frase por frase y se contesta, por cada cosa
+que promete, cuál condición de aceptación la comprueba; se lee el carril contra la superficie que toca y
+no contra su tamaño; y se comprueba que el cast entregue a quien construye. Lo que quede sin condición se
+agrega o se declara fuera de alcance en la línea.
+
+Es el único momento en que las cuatro se pueden mirar juntas, y por eso la pasada vive acá y no en una
+fase: después el carril ya decide cuáles corren, y la que revisaría es una de las que ese carril puede
+saltar. Una tarea mal marcada `express` es justamente la que se salta la fase donde alguien lo notaría.
+
+## Invariantes
+
+1. Una tarea tiene un dueño de estado: roadmap → BACKLOG → overlay WIP → DONE.
+2. Un runner lleva una tarea a la vez —WIP, que es local: `business-rules/system/BR-OPS-001`— y una
+   tarea la lleva un runner —el reclamo, que es compartido: `business-rules/system/BR-OPS-005`—.
+3. INBOX nunca se ejecuta automáticamente — `business-rules/system/BR-OPS-002`.
+4. No declarar éxito sin comandos, resultados y exit codes reales — `business-rules/system/BR-OPS-004`.
+5. No inventar credenciales ni decisiones; registrar HUMAN_ACTIONS.
+6. No ampliar alcance; lo adyacente vuelve al INBOX.
+7. No reescribir este proceso dentro de una tarea de producto.
+8. No push, amend, force, deploy o escritura externa sin autorización explícita.
+9. Todo gate manual dice qué pasó, qué debe hacer la persona y cómo continuar.
+10. El repositorio de código, no planning, es dueño del commit de producto.
+
+## Razones de parada
+
+Toda parada se nombra con una de éstas, en cualquier runner:
+
+`awaiting-review` · `blocked-on-human` · `not-ready` · `plan-rejected` · `review-unresolved` ·
+`verify-regression` · `verify-inconsistent` · `qa-failed` · `commit-failed` · `budget-low`
+
+Y deja el estado consistente: la tarea sin marcar, el WIP activo si es resumible, y —si necesita a una
+persona— la fila en `HUMAN_ACTIONS.md` o el `AWAITING_REVIEW.md` ya escritos.
+
+`ops context` emite las dos que puede determinar solo, `awaiting-review` y `blocked-on-human`; las
+demás las nombra la fase que para, que es la única que sabe por qué.

@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+build
+coverage
+public
+package-lock.json
+
+# Cauce administra estos archivos: formatearlos genera diff contra la plantilla.
+ops
+.claude
+
+# Bloques gestionados por herramientas (next dev reescribe AGENTS.md,
+# `automation install` reescribe el bloque de reglas de CLAUDE.md).
+AGENTS.md
+CLAUDE.md
