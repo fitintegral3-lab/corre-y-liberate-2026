@@ -40,9 +40,9 @@ export const distances = z
     {
       id: '3k-infantil',
       label: '3K',
-      fullLabel: '3K INFANTIL',
+      fullLabel: '3K',
       kilometers: 3,
       startTime: '6:30 am',
-      description: '3 kilómetros · (7 a 12 años)',
+      description: '3 kilómetros · Para todo público',
     },
   ]);

@@ -17,5 +17,5 @@
     "commitPerTask": true,
     "allowPush": false
   },
-  "cauceVersion": "0.97.0"
+  "cauceVersion": "0.99.1"
 }

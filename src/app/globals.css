@@ -24,6 +24,18 @@
 
   /* Ancho del lienzo del diseno original. */
   --container-canvas: 1366px;
+
+  /* Tira de patrocinadores. Ver SponsorsSection. */
+  --animate-marquee: marquee 40s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 html {

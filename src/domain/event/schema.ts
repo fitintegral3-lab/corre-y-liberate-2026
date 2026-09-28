@@ -53,11 +53,11 @@ export const distanceSchema = z.object({
   id: distanceIdSchema,
   /** Etiqueta corta para el hero y la grilla de horarios: `5K`. */
   label: z.string().min(1),
-  /** Etiqueta completa para la tabla de categorias: `3K INFANTIL`. */
+  /** Etiqueta completa para la tabla de categorias: `3K`. */
   fullLabel: z.string().min(1),
   kilometers: z.number().positive(),
   startTime: startTimeSchema,
-  /** Aclaracion bajo la categoria: `3 kilometros · (7 a 12 anios)`. */
+  /** Aclaracion bajo la categoria: `3 kilometros · Para todo publico`. */
   description: z.string().min(1),
 });
 
@@ -137,7 +137,9 @@ export const sponsorSchema = z.object({
   name: z.string().min(1),
   logo: assetPathSchema,
   tier: z.enum(['institucional', 'oficial']),
-  website: z.url().optional(),
+  website: z.url({ protocol: /^https$/ }).optional(),
+  /** Solo `instagram.com`: el boton del modal dice "Instagram" y no puede llevar a otra parte. */
+  instagram: z.url({ protocol: /^https$/, hostname: /^(www\.)?instagram\.com$/ }).optional(),
 });
 
 export const purposePillarSchema = z.object({
