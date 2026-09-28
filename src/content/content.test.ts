@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { awards, distances, presalePhases, sponsors } from '@/content';
+import { sponsorSchema } from '@/domain/event/schema';
 import { priceFor } from '@/domain/event/selectors';
 
 /**
@@ -78,5 +79,16 @@ describe('patrocinadores', () => {
   it('no repite ids, que es lo que usa React como key', () => {
     const ids = sponsors.map((sponsor) => sponsor.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('el enlace de instagram solo acepta instagram.com, por https', () => {
+    const base = { id: 'x', name: 'X', logo: '/sponsors/x.webp', tier: 'oficial' };
+    const accepts = (instagram: string) => sponsorSchema.safeParse({ ...base, instagram }).success;
+
+    expect(accepts('https://www.instagram.com/cerealesjj/')).toBe(true);
+    expect(accepts('https://instagram.com/cerealesjj/')).toBe(true);
+    expect(accepts('https://www.facebook.com/cerealesjj/')).toBe(false);
+    expect(accepts('https://instagram.com.evil.co/cerealesjj/')).toBe(false);
+    expect(accepts('http://www.instagram.com/cerealesjj/')).toBe(false);
   });
 });

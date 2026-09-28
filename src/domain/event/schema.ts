@@ -137,7 +137,9 @@ export const sponsorSchema = z.object({
   name: z.string().min(1),
   logo: assetPathSchema,
   tier: z.enum(['institucional', 'oficial']),
-  website: z.url().optional(),
+  website: z.url({ protocol: /^https$/ }).optional(),
+  /** Solo `instagram.com`: el boton del modal dice "Instagram" y no puede llevar a otra parte. */
+  instagram: z.url({ protocol: /^https$/, hostname: /^(www\.)?instagram\.com$/ }).optional(),
 });
 
 export const purposePillarSchema = z.object({
