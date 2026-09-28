@@ -53,11 +53,11 @@ export const distanceSchema = z.object({
   id: distanceIdSchema,
   /** Etiqueta corta para el hero y la grilla de horarios: `5K`. */
   label: z.string().min(1),
-  /** Etiqueta completa para la tabla de categorias: `3K INFANTIL`. */
+  /** Etiqueta completa para la tabla de categorias: `3K`. */
   fullLabel: z.string().min(1),
   kilometers: z.number().positive(),
   startTime: startTimeSchema,
-  /** Aclaracion bajo la categoria: `3 kilometros · (7 a 12 anios)`. */
+  /** Aclaracion bajo la categoria: `3 kilometros · Para todo publico`. */
   description: z.string().min(1),
 });
 

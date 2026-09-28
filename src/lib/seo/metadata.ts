@@ -17,7 +17,7 @@ const distanceList = [...distances]
   .sort((a, b) => b.kilometers - a.kilometers)
   .map((distance) => distance.fullLabel);
 
-/** `10K, 7K, 5K y 3K INFANTIL`. */
+/** `10K, 7K, 5K y 3K`. */
 function humanJoin(values: readonly string[]): string {
   if (values.length <= 1) return values[0] ?? '';
   return `${values.slice(0, -1).join(', ')} y ${values[values.length - 1]}`;
