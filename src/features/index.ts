@@ -6,6 +6,7 @@
  * pagina solo las ordena.
  */
 export { AwardsSection } from '@/features/awards/AwardsSection';
+export { RunningClubsSection } from '@/features/clubs/RunningClubsSection';
 export { EditionSection } from '@/features/edition/EditionSection';
 export { HeroSection } from '@/features/hero/HeroSection';
 export { PricingSection } from '@/features/pricing/PricingSection';

@@ -8,6 +8,7 @@ import {
   RegistrationBanner,
   RegistrationStepsSection,
   RunnerKitSection,
+  RunningClubsSection,
   SponsorsSection,
   VenueSection,
 } from '@/features';
@@ -48,6 +49,7 @@ export default function HomePage() {
         <RunnerKitSection />
         <VenueSection />
         <SponsorsSection />
+        <RunningClubsSection />
         <PurposeSection />
       </main>
 

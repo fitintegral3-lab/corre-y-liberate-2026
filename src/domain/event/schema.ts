@@ -146,6 +146,8 @@ export const sponsorSchema = linkedLogoSchema.extend({
   tier: z.enum(['institucional', 'oficial']),
 });
 
+export const runningClubSchema = linkedLogoSchema;
+
 export const purposePillarSchema = z.object({
   order: z.number().int().min(1),
   title: z.string().min(1),
@@ -205,6 +207,7 @@ export type RunnerKitItem = z.infer<typeof runnerKitItemSchema>;
 export type Venue = z.infer<typeof venueSchema>;
 export type LinkedLogo = z.infer<typeof linkedLogoSchema>;
 export type Sponsor = z.infer<typeof sponsorSchema>;
+export type RunningClub = z.infer<typeof runningClubSchema>;
 export type PurposePillar = z.infer<typeof purposePillarSchema>;
 export type RegistrationStep = z.infer<typeof registrationStepSchema>;
 export type NavLink = z.infer<typeof navLinkSchema>;
