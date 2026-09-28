@@ -1,7 +1,5 @@
-import { Container } from '@/components/ui';
+import { Container, LogoMarquee } from '@/components/ui';
 import { sponsors, sponsorsSection } from '@/content';
-
-import { SponsorsMarquee } from './SponsorsMarquee';
 
 export function SponsorsSection() {
   return (
@@ -19,7 +17,7 @@ export function SponsorsSection() {
       </Container>
 
       {/* La tira va fuera del Container para cruzar la pantalla entera. */}
-      <SponsorsMarquee sponsors={sponsors} />
+      <LogoMarquee items={sponsors} />
     </section>
   );
 }

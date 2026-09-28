@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next';
 
+import { turbopackRootFor } from './src/lib/build/turbopack-root';
+
 const isDev = process.env.NODE_ENV === 'development';
 
 /**
@@ -55,6 +57,9 @@ const nextConfig: NextConfig = {
 
   // `typedRoutes` convierte un href roto en error de compilacion en vez de 404.
   typedRoutes: true,
+
+  // `next build` corre desde la carpeta del proyecto. El porque, en turbopack-root.ts.
+  turbopack: { root: turbopackRootFor(process.cwd()) },
 
   async headers() {
     return [

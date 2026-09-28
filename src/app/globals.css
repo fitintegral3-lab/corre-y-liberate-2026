@@ -25,7 +25,7 @@
   /* Ancho del lienzo del diseno original. */
   --container-canvas: 1366px;
 
-  /* Tira de patrocinadores. Ver SponsorsSection. */
+  /* Tira de logos. La duracion la ajusta LogoMarquee segun el largo de la lista. */
   --animate-marquee: marquee 40s linear infinite;
 
   @keyframes marquee {
