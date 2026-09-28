@@ -132,14 +132,18 @@ export const venueSchema = z.object({
   doorsOpenNote: z.string().min(1),
 });
 
-export const sponsorSchema = z.object({
+/** Logo de la tira de patrocinadores o de clubes, con los enlaces que abre su modal. */
+export const linkedLogoSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   logo: assetPathSchema,
-  tier: z.enum(['institucional', 'oficial']),
   website: z.url({ protocol: /^https$/ }).optional(),
   /** Solo `instagram.com`: el boton del modal dice "Instagram" y no puede llevar a otra parte. */
   instagram: z.url({ protocol: /^https$/, hostname: /^(www\.)?instagram\.com$/ }).optional(),
+});
+
+export const sponsorSchema = linkedLogoSchema.extend({
+  tier: z.enum(['institucional', 'oficial']),
 });
 
 export const purposePillarSchema = z.object({
@@ -199,6 +203,7 @@ export type AwardTheme = Award['theme'];
 export type PresalePhase = z.infer<typeof presalePhaseSchema>;
 export type RunnerKitItem = z.infer<typeof runnerKitItemSchema>;
 export type Venue = z.infer<typeof venueSchema>;
+export type LinkedLogo = z.infer<typeof linkedLogoSchema>;
 export type Sponsor = z.infer<typeof sponsorSchema>;
 export type PurposePillar = z.infer<typeof purposePillarSchema>;
 export type RegistrationStep = z.infer<typeof registrationStepSchema>;
