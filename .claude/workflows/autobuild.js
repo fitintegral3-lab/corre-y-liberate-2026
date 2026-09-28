@@ -88,6 +88,32 @@ function inboxAsk(sections, heads, origin) {
     `Por nombre, ${known}: lo que ya esté con uno de esos nombres no se ` +
     `vuelve a escribir.`
 }
+// Cómo se lee una aceptación, compartido por las dos puntas que la juzgan: `check`, que avisa sobre la
+// cola, y `autobuild`, que la manda a Verify. Vive acá y no en el motor porque el recorrido no puede hacer
+// `require` —se renderiza con `{{INCLUDE:}}`— y el motor sí puede leer este archivo: lo carga
+// `engine/planning/acceptance.js`. Escrito dos veces, una copia dejaba de reconocer lo que la otra pedía
+// escribir, que es exactamente el caso 195: `check` ofrecía una marca que el recorrido no conocía.
+
+// Una condición por tramo separado con `;`, el grano con el que Verify contrasta —su `uncovered` enumera
+// criterios— y con el que `check` avisa.
+const acceptanceConditions = (acceptance) => String(acceptance || '').split(';')
+  .map((one) => one.trim()).filter(Boolean)
+
+// La salida explícita, con la forma que el repositorio ya usa dos veces: `(sin partir: …)` para el umbral
+// de R17 y `n/a — razón` para `tests:` y `commit:`. Acá vale lo mismo que allá —«como lleva su razón
+// escrita se lee en el propio artefacto sin que nadie la cruce»— y por eso no se intenta adivinar si la
+// prosa excluye a Verify. Adivinarlo es lo que no se puede: la única aceptación real que nombra el commit
+// lo hace justamente para decir que no es condición de Verify, y cualquier lista de frases que la
+// reconociera enseñaría a escribir esa frase exacta para silenciar el aviso.
+const OUT_OF_VERIFY = /\(fuera de verify:\s*[^)]+\)/i
+
+// Lo que no se ejecuta, y por eso lo único que un criterio `no-surface` puede haber producido (caso 189).
+// Es la lista a favor y no la de lo ejecutable a propósito (R27): un `.sql` de migración, un workflow en
+// YAML, un `Dockerfile`, un `Makefile` o un `.json` de configuración se ejecutan sin parecer código, y una
+// lista de lo ejecutable dejaría afuera lo que venga después. Ampliarla es un cambio con su razón al lado.
+// Las imágenes entraron porque un ADR suele traer su diagrama, y sin ellas ese commit contaba como código.
+// Lo que no tiene extensión sigue contando como ejecutable: `Makefile` y `Dockerfile` no la tienen.
+const NON_EXECUTABLE = ['.md', '.txt', '.adoc', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']
 const CONFIG = `${ROOT}/ops.config.json`
 const P = `${ROOT}/planning`
 const ORG = `${ROOT}/organization`
@@ -102,6 +128,13 @@ const GATE = `${P}/AWAITING_REVIEW.md`
 // leen este archivo sin parsearlo —caso 084—, y de a pares es además lo correcto, porque una comilla
 // suelta no es un envoltorio. Por eso también la escapada en vez de alternar el estilo de comillas.
 const QUOTES = ['\'', '"']
+
+// Si la fila que registró una parada quedó pendiente. `context` sólo lista las pendientes, así que
+// preguntar por la presencia de la tarea alcanza, y no hace falta que un modelo lea el estado.
+const HUMAN_ROW = {
+  type: 'object', additionalProperties: false, required: ['readOk', 'pending'],
+  properties: { readOk: { type: 'boolean' }, pending: { type: 'boolean' } },
+}
 
 const CONTEXT = {
   type: 'object', additionalProperties: false,
@@ -243,18 +276,27 @@ const REVIEWED = { ...DECISION, required: [...DECISION.required, 'rules'],
 // menos —o que ni existe— sale verde igual, y el guard de verify tampoco lo ve porque también mira exit
 // codes. Por eso `uncovered` se contrasta contra la aceptación leyendo el fuente, no la salida (R9).
 const VERIFY = {
-  type: 'object', additionalProperties: false, required: ['passed', 'commands', 'details', 'uncovered'],
+  type: 'object', additionalProperties: false, required: ['passed', 'commands', 'details', 'uncovered', 'covered'],
   properties: {
     passed: { type: 'boolean' }, details: { type: 'string' },
-    // Dos causas que se leen igual en el resultado y piden cosas opuestas: a una le falta trabajo que
-    // el propio recorrido puede hacer, a la otra le falta una decisión que no es suya. Sin separarlas,
-    // la corrida frena por las dos y una persona termina resolviendo lo que se resolvía solo.
+    // Tres causas que se leen igual en el resultado y piden cosas distintas: a una le falta trabajo que
+    // el propio recorrido puede hacer, a otra le falta una decisión que no es suya, y la tercera no tiene
+    // prueba posible porque su entregable no se ejecuta —un ADR, una política—. Sin separarlas, la corrida
+    // frena por las tres, una persona resuelve lo que se resolvía solo y la tarea de decisión no cierra
+    // nunca (caso 189). `reason` es lo que Done escribe en `tests: n/a — <razón>`.
     uncovered: { type: 'array', items: { type: 'object', additionalProperties: false,
       required: ['criterion', 'cause'],
       properties: {
         criterion: { type: 'string' },
-        cause: { type: 'string', enum: ['missing-test', 'ambiguous'] },
+        cause: { type: 'string', enum: ['missing-test', 'ambiguous', 'no-surface'] },
+        reason: { type: 'string' },
       },
+    } },
+    // El mapeo que Verify arma al contrastar y del que sale `tests: CN → prueba`. Sin viajar, Done lo
+    // componía de memoria (hallazgo del 189).
+    covered: { type: 'array', items: { type: 'object', additionalProperties: false,
+      required: ['criterion', 'test'],
+      properties: { criterion: { type: 'string' }, test: { type: 'string' } },
     } },
     commands: { type: 'array', items: { type: 'object', required: ['cmd', 'exitCode'], properties: {
       cmd: { type: 'string' }, exitCode: { type: 'integer' }, note: { type: 'string' },
@@ -511,13 +553,32 @@ const read = (prompt, options = {}) => agent(`${BASE}\n\n${prompt}`, options)
 const run = (prompt, options = {}) => agent(`${SCOPE()}\n\n${prompt}`, options)
 const write = (prompt, options = {}) => agent(`${LEDGER()}\n\n${prompt}`, options)
 
-// Las tres paradas que dejan una fila en HUMAN_ACTIONS delegan esa escritura a un agente, y esa fila es
-// el único rastro de la parada: sin ella el recorrido informa un estado que el disco no tiene. Por eso
-// se espera —lanzarla y volver en la línea siguiente la abandona— y por eso se mira si contestó.
-// Devuelve lo que hay que agregarle al detalle, vacío cuando la fila quedó pedida. Caso 087.
-const registerHuman = async (prompt, label) => (await write(prompt, { label })
-  ? ''
-  : ` — la fila en ${HUMAN} no se pudo registrar: escribila a mano`)
+// Las paradas que dejan una fila en HUMAN_ACTIONS delegan esa escritura a un agente, y esa fila es el
+// único rastro de la parada: sin ella el recorrido informa un estado que el disco no tiene. Por eso se
+// espera —lanzarla y volver en la línea siguiente la abandona— y por eso se mira si contestó (caso 087).
+// Devuelve lo que hay que agregarle al detalle, vacío cuando la fila quedó como tiene que quedar.
+//
+// Contestar no alcanza: el agente que acaba de escribir el diagnóstico entero lo lee como ya resuelto, y
+// en una corrida real escribió la fila `resuelta` y la firmó como «decidido por el dueño», desbloqueando
+// la tarea sin que nadie decidiera nada (caso 180). Por eso cada pedido arranca diciendo que la fila nace
+// pendiente, y cuando la fila es de la propia tarea se relee en `context`, que sólo lista las pendientes.
+const HUMAN_ROW_STATE = 'La fila nace con estado `pendiente`, sin excepción: registrás el bloqueo, no lo '
+  + 'resolvés —lo resuelve una persona—. No escribas una decisión ni se la atribuyas a nadie.'
+const registerHuman = async (prompt, label, slug = '') => {
+  if (!(await write(`${HUMAN_ROW_STATE}\n\n${prompt}`, { label }))) {
+    return ` — la fila en ${HUMAN} no se pudo registrar: escribila a mano`
+  }
+  if (!slug) return ''
+  const row = await read(
+    `Corré "node tools/ops.js context ${P} --json" desde ${ROOT}. Poné pending en true sólo si humanActions `
+    + `trae una fila cuya task sea ${slug}, y readOk en true sólo si el comando salió con código 0 y devolvió `
+    + 'JSON. El comando es la fuente de verdad: no abras archivos de planning.',
+    { schema: HUMAN_ROW, label: 'human-row' },
+  )
+  if (!row || !row.readOk) return ` — no se pudo comprobar la fila de ${slug} en ${HUMAN}: revisala a mano`
+  return row.pending ? ''
+    : ` — la fila de ${slug} en ${HUMAN} no quedó pendiente: la resuelve una persona, revisala a mano`
+}
 
 // Gate, mutex de WIP y selección de tarea salen de un comando determinista: AWAITING_REVIEW, BACKLOG,
 // WIP y HUMAN_ACTIONS nunca entran al contexto de un modelo, y su tamaño deja de costar tokens.
@@ -612,6 +673,10 @@ while (rounds++ < MAX_TASKS) {
   const DECIDED = () => (task.description
     ? ` Lo que la línea de la tarea ya decidió, y no se re-decide acá: ${task.description}`
     : '')
+  // Sobrevive al bloque del plan porque Build vive afuera —y porque una corrida que reanuda desde un WIP
+  // no tiene plan en memoria—. Sin esto la estrategia no era que se descartara: es que no estaba en
+  // alcance, que es la forma que ninguna prueba de la fase ve.
+  let testStrategy = ''
   const task = {
     id: planning.slug, hito: planning.hito, service: planning.service,
     acceptance: planning.acceptance, epic: planning.epic, epicContext: planning.epicContext || '',
@@ -623,13 +688,13 @@ while (rounds++ < MAX_TASKS) {
   // por eso perder la carrera no es un error: se relee y se sigue con la que quedó libre.
   if (!planning.claimed && !planning.wipActive) {
     phase('Claim')
-    const reserva = await write(
+    const claim = await write(
       `Corré "node tools/ops.js claim ${P} ${task.id}" desde ${ROOT}. No escribas ningún archivo vos: lo ` +
       `escribe el comando. claimed=true sólo con exit 0; si falla porque la tomó otro, claimed=false y ` +
       `copiá el mensaje en details.`,
       { schema: CLAIM, label: `claim:${task.id}` },
     )
-    if (!reserva || !reserva.claimed) {
+    if (!claim || !claim.claimed) {
       planning = await readContext()
       if (!planning) return stop('context-unavailable', `no se pudo releer el estado de ${P}`)
       // Perder la carrera es legítimo y se ve en que la cola pasa a ofrecer **otra** tarea: quien la
@@ -648,7 +713,7 @@ while (rounds++ < MAX_TASKS) {
       if (planning.hasTask && planning.slug === task.id && !planning.claimed) {
         return stop('claim-stuck', `${task.id} sigue siendo la próxima tarea y no se pudo reclamar. `
           + `context la ofrece y claim la rechaza, así que repetir no cambia nada. `
-          + `El reclamo contestó: ${(reserva && reserva.details) || '(sin detalle)'}`)
+          + `El reclamo contestó: ${(claim && claim.details) || '(sin detalle)'}`)
       }
       // Con qué sigue, que es lo que cambia respecto de lo que esperaba quien autorizó la corrida: se
       // pidió un hito y se va a construir otra tarea de ese hito. Sin decirlo, el cambio sólo aparece al
@@ -762,12 +827,12 @@ while (rounds++ < MAX_TASKS) {
 
   const planRejected = async (reason, unit, found) => {
     const detail = found.join('; ') || 'sin condiciones nombradas'
-    const nota = await registerHuman(
+    const note = await registerHuman(
       `Registrá ${unit.id} en ${HUMAN}: nadie pudo escribir un plan que sobreviva a la crítica. `
       + `Motivo: ${detail}. La acción humana es revisar si la unidad son dos resultados con vidas `
-      + `distintas y partirla, o dejarla entera con la razón escrita.`, 'plan-human')
+      + `distintas y partirla, o dejarla entera con la razón escrita.`, 'plan-human', unit.id)
     await releaseBlocked()
-    return stop(reason, `${detail}${nota}`)
+    return stop(reason, `${detail}${note}`)
   }
 
   if (!planning.wipActive) {
@@ -782,11 +847,11 @@ while (rounds++ < MAX_TASKS) {
       )
       if (!ready) return stop('agent-unavailable', 'Ready no devolvió resultado')
       if (!ready.ready) {
-        const nota = await registerHuman(
+        const note = await registerHuman(
           `Registrá ${task.id} en ${HUMAN} con el motivo y una acción humana exacta: ${ready.reason}.`,
-          'ready-human')
+          'ready-human', task.id)
         await releaseBlocked()
-        return stop('not-ready', `${ready.reason}${nota}`)
+        return stop('not-ready', `${ready.reason}${note}`)
       }
       if (ready.refinedAcceptance) task.acceptance = ready.refinedAcceptance
     }
@@ -892,6 +957,7 @@ while (rounds++ < MAX_TASKS) {
       if (!critique.consulted.length) return stop('critique-unbacked', 'aprobó el plan sin declarar qué inspeccionó')
     }
     }
+    testStrategy = plan.testStrategy || ''
     phase('WIP')
     // Esta llamada escribe un archivo y nada más, y hay que decirlo con todas las letras. En una corrida
     // real hizo el trabajo entero: leyó los pasos del plan como una orden, implementó, corrió RED/GREEN,
@@ -904,7 +970,15 @@ while (rounds++ < MAX_TASKS) {
       `en DONE. Los pasos van sin tildar porque todavía no ocurrieron. task=${task.id}, ` +
       `hito=${JSON.stringify(task.hito)}, phase=Build, service=${task.service}, ` +
       `acceptance=${JSON.stringify(task.acceptance)}, lane=${planning.lane || 'sin clasificar'}, ` +
-      `pasos sin tildar=${JSON.stringify(plan.steps)}. ` +
+      `pasos sin tildar=${JSON.stringify(plan.steps)}, ` +
+      // La estrategia de prueba es `required` en el plan y hasta acá se descartaba, así que un paso que
+      // decía «correr la mutación declarada en testStrategy» apuntaba a un lugar que no existía: quien
+      // revisa no podía distinguir la mutación corrida de la pensada, y la única salida que le quedaba
+      // era rehacer la revisión. R9 pide la mutación **declarada**, y el WIP es donde queda escrita.
+      //
+      // Es la tercera vez que algo decidido no llega a quien decide después: el contexto de la épica
+      // (027), la descripción de la tarea (177) y esto. Las tres se arreglan igual — que viaje.
+      `testStrategy=${JSON.stringify(testStrategy)}. ` +
       `Registrá el reparto de cargos ${JSON.stringify(cast)} en las decisiones del WIP, para que después se ` +
       `pueda auditar quién revisó qué. Seguí el contrato de WIP exactamente y reportá con qué status quedó.`,
       { label: 'wip', schema: {
@@ -948,7 +1022,8 @@ while (rounds++ < MAX_TASKS) {
     `nombrás en test y anotás en redFirst—, kind=open si lo notaste y no impide entregar la aceptación: se ` +
     `registra para que lo decida quien corresponde y el recorrido sigue. Si de verdad no podés entregar sin ` +
     `esa decisión, eso no va en discovered: es completed=false con su blocker. ` +
-    `Aceptación: ${task.acceptance}.${DECIDED()}`,
+    `Aceptación: ${task.acceptance}.${DECIDED()}`
+    + (testStrategy ? ` Estrategia de prueba que el plan fijó: ${testStrategy}` : ''),
     { schema: BUILD, label: 'build' },
   )
   if (!build) return stop('agent-unavailable', 'Build no devolvió resultado')
@@ -1076,11 +1151,11 @@ while (rounds++ < MAX_TASKS) {
     if (filed.length) {
       // La nota que devuelve viaja al hecho: sin ella la entrega afirma una fila que el disco no tiene,
       // que es el caso 087 entrando por otra puerta.
-      const nota = await registerHuman(`Registrá en ${HUMAN} una fila por cada decisión que la revisión de `
+      const note = await registerHuman(`Registrá en ${HUMAN} una fila por cada decisión que la revisión de `
         + `${task.id} dejó abierta, con qué la cierra y quién puede tomarla. La primera columna nunca es `
         + `${task.id} —el porqué es el mismo que en Build—: va la épica, el hito o el recorrido al que `
         + `alcanza. No inventes responsables ni fechas: ${JSON.stringify(filed)}`, 'review-human')
-      decidedNote = `${nota}`
+      decidedNote = `${note}`
     }
     reviewFact = `${review.verdict} por ${cast.review}, sobre ${review.consulted.join(', ')}`
       + (filed.length ? ` · ${filed.length} decisión(es) registrada(s)${decidedNote}` : '')
@@ -1114,11 +1189,25 @@ while (rounds++ < MAX_TASKS) {
   }
 
   phase('Verify')
+  // Lo declarado `(fuera de verify: …)` se separa acá y no se le explica a Verify: la aceptación es texto
+  // conocido antes de preguntar, y dejar que el modelo reconozca la marca en la respuesta es apostar a que
+  // enumere los criterios con el mismo corte. `check` ofrecía la marca y el recorrido la mandaba igual,
+  // así que la condición terminaba en `uncovered` y la corrida en `verify-hollow` (caso 195).
+  const conditions = acceptanceConditions(task.acceptance)
+  const outOfVerify = conditions.filter((one) => OUT_OF_VERIFY.test(one))
+  const checkable = outOfVerify.length
+    ? conditions.filter((one) => !OUT_OF_VERIFY.test(one)).join('; ')
+      || 'ninguna: todas se declararon fuera de verify'
+    : task.acceptance
   const VERIFY_ASK = `${asRole(cast.verify)}Abrí el fuente de los tests que la tarea agregó o cambió y ` +
     `contrastá cada criterio ` +
     `de aceptación contra sus aserciones: en uncovered va el criterio que ningún test codifica, con su causa ` +
     `—missing-test si el test falta o no asercia la propiedad, ambiguous si el criterio no dice qué habría ` +
-    `que aserciar—. Un test que pasa sin aserciarla no la cubre. Después corré los gates reales de ${task.service}. ` +
+    `que aserciar, no-surface si se cumple en un artefacto que no se ejecuta, como un documento o una ` +
+    `decisión escrita, y con reason diciendo cuál—. no-surface vale sólo si la tarea no tocó ningún archivo ` +
+    `que no termine en ${NON_EXECUTABLE.join(', ')}; con cualquier otro en el diff es missing-test. En ` +
+    `covered va cada criterio que un test sí codifica, con el nombre de ese test. ` +
+    `Un test que pasa sin aserciarla no la cubre. Después corré los gates reales de ${task.service}. ` +
     // Descubrir la puerta es trabajo de modelo repetido en cada tarea sobre una respuesta que no cambia,
     // y encima adivinable: el proyecto la declara en `verify` y ahí deja de adivinarse. Cuando no la
     // declara se vuelve a descubrir, que es lo que pasaba siempre.
@@ -1131,7 +1220,7 @@ while (rounds++ < MAX_TASKS) {
     `Leé los exit codes de verdad. ` +
     `passed=true exige comandos corridos y ninguna regresión causada por la tarea. Marcá ranTests en el ` +
     `comando que haya corrido las pruebas, sea cual sea su nombre. ` +
-    `Aceptación: ${task.acceptance}.`
+    `Aceptación: ${checkable}.`
   let verified = await run(VERIFY_ASK, { schema: VERIFY, label: 'verify' })
   if (!verified) return stop('agent-unavailable', 'Verify no devolvió resultado')
   // Un criterio que nadie sabe cómo aserciar no es trabajo que falta sino una definición que falta, y
@@ -1139,14 +1228,18 @@ while (rounds++ < MAX_TASKS) {
   // hacer parar a una persona por eso le cobra una interrupción por algo que se resolvía solo.
   const ambiguous = verified.uncovered.find((entry) => entry.cause === 'ambiguous')
   if (ambiguous) {
-    const nota = await registerHuman(
+    const note = await registerHuman(
       `Registrá ${task.id} en ${HUMAN}: el criterio "${ambiguous.criterion}" no dice qué habría ` +
-      `que aserciar, y hace falta la decisión que lo fija.`, 'verify-human')
-    return stop('acceptance-ambiguous', `${ambiguous.criterion}${nota}`)
+      `que aserciar, y hace falta la decisión que lo fija.`, 'verify-human', task.id)
+    return stop('acceptance-ambiguous', `${ambiguous.criterion}${note}`)
   }
-  if (verified.uncovered.length) {
+  // Lo que no tiene superficie no frena ni rebota: viaja a Done, que lo escribe como `tests: n/a`. Se filtra
+  // por exclusión y no por `missing-test` para que una causa que no se conozca siga frenando (R27). Que
+  // el modelo no lo use para cerrar sin pruebas lo sostiene `check`, que mira qué tocó el commit.
+  const lacking = () => verified.uncovered.filter((entry) => entry.cause !== 'no-surface')
+  if (lacking().length) {
     await run(`${asRole(cast.build)}Escribí sólo las pruebas que faltan en ${task.id}, con el mismo rojo ` +
-      `previo, y no toques el código de producción: ${verified.uncovered.map((e) => e.criterion).join('; ')}`,
+      `previo, y no toques el código de producción: ${lacking().map((e) => e.criterion).join('; ')}`,
       { label: 'missing-tests' })
     verified = await run(VERIFY_ASK, { schema: VERIFY, label: 'verify' })
     if (!verified) return stop('agent-unavailable', 'la segunda pasada de Verify no devolvió resultado')
@@ -1158,21 +1251,29 @@ while (rounds++ < MAX_TASKS) {
   if (build.redFirst.length && !ranTests) {
     return stop('verify-untested', `${task.id} escribió pruebas y ningún gate corrió una`)
   }
-  if (verified.uncovered.length) {
-    return stop('verify-hollow', `sin test que lo codifique: ${verified.uncovered.map((e) => e.criterion).join('; ')}`)
+  if (lacking().length) {
+    return stop('verify-hollow', `sin test que lo codifique: ${lacking().map((e) => e.criterion).join('; ')}`)
   }
+  const noSurface = verified.uncovered.filter((entry) => entry.cause === 'no-surface')
+  const covered = verified.covered || []
+  // Toda la tarea sin superficie: no hay comportamiento que ejercitar, y saltear QA en silencio dejaría sin
+  // mirar lo único que se puede mirar, que el documento esté y diga lo que la aceptación enumera.
+  const onlyDocument = noSurface.length > 0 && !covered.length
 
   // QA ejercita comportamiento, y lo mecánico no lo cambia: el valor literal que la aceptación nombra
   // ya lo comprobó Verify contra el test, y en `directo` además lo mira el revisor que nombra el cast.
   let qa = { passed: true, evidence: 'carril mecánico: la aceptación queda comprobada en Verify' }
   if (!mechanical) {
     phase('QA')
-    qa = await run(
-      `${asRole(cast.qa)}${lite
+    qa = await run(onlyDocument
+      ? `${asRole(cast.qa)}${task.id} no tiene superficie ejecutable: comprobá que el documento existe y cubre ` +
+        `cada elemento que la aceptación enumera, y en evidence decí cuáles encontraste y dónde. ` +
+        `Aceptación: ${checkable}.`
+      : `${asRole(cast.qa)}${lite
         ? 'Hacé la comprobación de aceptación real más barata'
         : 'Ejercitá el comportamiento real que ve quien lo usa'} para ` +
       `${task.id}. Las pruebas unitarias solas no son QA. Levantá el mínimo runtime necesario y bajalo ` +
-      `después. Aceptación: ${task.acceptance}.`,
+      `después. Aceptación: ${checkable}.`,
       { schema: QA, label: 'qa' },
     )
     if (!qa) return stop('agent-unavailable', 'QA no devolvió resultado')
@@ -1200,7 +1301,14 @@ while (rounds++ < MAX_TASKS) {
     `"node tools/ops.js release ${P} ${task.id}". En decisions no nombres una fase ni un cargo ` +
     `que no figure en estos hechos. Hechos: lane=${planning.lane || 'sin clasificar'}; ` +
     `review=${reviewFact}; fases=${ran.join(' → ')}; build=${build.summary}; ` +
-    `verify=${JSON.stringify(verified.commands)}; qa=${qa.evidence}; commit=${commit.hash || commit.reason}.`,
+    `verify=${JSON.stringify(verified.commands)}; cubiertos=${JSON.stringify(covered)}; ` +
+    (noSurface.length ? `sin-superficie=${JSON.stringify(noSurface.map(({ criterion, reason }) => ({
+      criterion, reason: reason || 'no se ejecuta' })))}; ` : '') +
+    (outOfVerify.length ? `fuera-de-verify=${JSON.stringify(outOfVerify)}; ` : '') +
+    `qa=${qa.evidence}; commit=${commit.hash || commit.reason}. En tests rastreá cada criterio con la ` +
+    `prueba que cubiertos le asigna` +
+    (noSurface.length ? ', y los de sin-superficie con tests: n/a — <razón>' : '') +
+    (outOfVerify.length ? '; cada condición de fuera-de-verify queda cumplida en tests, qa o commit' : '') + '.',
     { label: 'done' },
   )
   completed.push(task.id)
