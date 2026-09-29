@@ -7,38 +7,32 @@
  */
 export interface SupabaseConfig {
   url: string;
-  publishableKey: string;
   secretKey: string;
 }
 
 export function readSupabaseConfig(
   source: Record<string, string | undefined>,
 ): SupabaseConfig | null {
-  const url = source.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? '';
-  const publishableKey = source.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ?? '';
+  const url = source.SUPABASE_URL?.trim() ?? '';
   const secretKey = source.SUPABASE_SECRET_KEY?.trim() ?? '';
 
-  if (!url && !publishableKey && !secretKey) return null;
+  if (!url && !secretKey) return null;
   if (!/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(url)) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL debe ser https://<proyecto>.supabase.co');
-  }
-  if (!publishableKey.startsWith('sb_publishable_')) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY debe empezar con sb_publishable_');
+    throw new Error('SUPABASE_URL debe ser https://<proyecto>.supabase.co');
   }
   if (!secretKey.startsWith('sb_secret_')) {
     throw new Error(
       'SUPABASE_SECRET_KEY debe empezar con sb_secret_ (Supabase > Settings > API Keys)',
     );
   }
-  return { url, publishableKey, secretKey };
+  return { url, secretKey };
 }
 
 /** Como `readSupabaseConfig` sobre el proceso, pero nunca lanza: registra y apaga. */
 export function supabaseConfig(): SupabaseConfig | null {
   try {
     return readSupabaseConfig({
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_URL: process.env.SUPABASE_URL,
       SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
     });
   } catch (error) {

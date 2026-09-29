@@ -73,7 +73,7 @@ el mismo contenido.
    leer ni escribir) y un bucket `comprobantes` en Supabase Storage que ya **no se usa**: los comprobantes van a Google Cloud
    Storage (ver abajo).
 2. **Variables** (local en `.env.local`, en Vercel en Settings > Environment Variables):
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY`. La secreta
+   `SUPABASE_URL` y `SUPABASE_SECRET_KEY`. Ninguna lleva `NEXT_PUBLIC_`: el navegador no habla con Supabase. La secreta
    salta RLS y lee todas las inscripciones: solo servidor, nunca con `NEXT_PUBLIC_`.
 
 Sin esas variables `/inscripcion` responde 404 y el resto del sitio funciona igual.
