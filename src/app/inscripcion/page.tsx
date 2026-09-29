@@ -66,6 +66,7 @@ export default function InscripcionPage() {
               id: distance.id,
               label: distance.label,
               description: distance.description,
+              routeImage: distance.routeImage,
             }))}
             supabaseUrl={config.url}
             supabasePublishableKey={config.publishableKey}

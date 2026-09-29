@@ -59,6 +59,8 @@ export const distanceSchema = z.object({
   startTime: startTimeSchema,
   /** Aclaracion bajo la categoria: `3 kilometros · Para todo publico`. */
   description: z.string().min(1),
+  /** Afiche con el mapa del recorrido, que se abre desde los horarios de salida. */
+  routeImage: assetPathSchema,
 });
 
 // ---------------------------------------------------------------------------

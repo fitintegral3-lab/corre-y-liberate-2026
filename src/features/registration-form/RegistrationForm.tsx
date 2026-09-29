@@ -11,6 +11,7 @@ import {
   type RegistrationErrorReason,
 } from '@/content';
 import { BLOOD_TYPES, SHIRT_SIZES } from '@/domain/registration/schema';
+import { RouteButton } from '@/features/routes/RouteButton';
 import { formatCop } from '@/lib/format';
 
 import { QrPayment } from './QrPayment';
@@ -19,6 +20,7 @@ export interface DistanceOption {
   id: string;
   label: string;
   description: string;
+  routeImage: string;
 }
 
 interface Quote {
@@ -229,23 +231,28 @@ export function RegistrationForm({
       <Section title={registrationFormCopy.sections.race}>
         <Field label="Carrera *" error={error('distanceId')} as="fieldset">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {/* El boton de ruta va fuera del <label>: adentro, tocarlo tambien
+                elegiria esa distancia. */}
             {distances.map((distance) => (
-              <label key={distance.id} className={`${choiceClass} flex-col py-4`}>
-                <input
-                  type="radio"
-                  name="distanceId"
-                  value={distance.id}
-                  checked={distanceId === distance.id}
-                  onChange={() => chooseDistance(distance.id)}
-                  className="sr-only"
-                />
-                <span className="font-athletic text-3xl leading-none text-neutral-950">
-                  {distance.label}
-                </span>
-                <span className="mt-1 text-center text-[11px] font-medium text-neutral-500">
-                  {distance.description}
-                </span>
-              </label>
+              <div key={distance.id} className="flex flex-col items-center gap-2">
+                <label className={`${choiceClass} w-full flex-1 flex-col py-4`}>
+                  <input
+                    type="radio"
+                    name="distanceId"
+                    value={distance.id}
+                    checked={distanceId === distance.id}
+                    onChange={() => chooseDistance(distance.id)}
+                    className="sr-only"
+                  />
+                  <span className="font-athletic text-3xl leading-none text-neutral-950">
+                    {distance.label}
+                  </span>
+                  <span className="mt-1 text-center text-[11px] font-medium text-neutral-500">
+                    {distance.description}
+                  </span>
+                </label>
+                <RouteButton label={distance.label} routeImage={distance.routeImage} />
+              </div>
             ))}
           </div>
         </Field>
