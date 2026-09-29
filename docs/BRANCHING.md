@@ -46,7 +46,8 @@ idea → ops/planning/INBOX.md
    `ops/planning/roadmap/` con sus criterios de aceptación.
 3. Las historias listas pasan a un `## Hito` de `ops/planning/BACKLOG.md`.
 4. Se abre una rama, se trabaja, se abre PR contra `development`.
-5. CI corre formato, lint, tipos, pruebas, build y validación del planning.
+5. CI corre formato, lint, tipos, pruebas, build, que ningún código de descuento
+   llegue al navegador (`check:bundle`) y la validación del planning.
 6. Se mergea. La evidencia de la tarea queda en `ops/planning/done/`.
 
 ## Release a producción

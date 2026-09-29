@@ -1,6 +1,7 @@
 import { Container, CtaLink, DotPattern } from '@/components/ui';
 import { distances, event, heroSection } from '@/content';
 import { siteConfig } from '@/config/site';
+import { RouteButton } from '@/features/routes/RouteButton';
 import { formatDayAndShortMonth } from '@/lib/format';
 
 export function HeroSection() {
@@ -50,6 +51,9 @@ export function HeroSection() {
                   </dt>
                   <dd className="mt-1 block font-athletic-semibold text-xs text-white/90 sm:text-sm">
                     {distance.startTime}
+                  </dd>
+                  <dd className="mt-2">
+                    <RouteButton label={distance.label} routeImage={distance.routeImage} />
                   </dd>
                 </div>
               ))}

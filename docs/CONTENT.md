@@ -9,19 +9,27 @@ como un `NaN` o una imagen rota.
 
 ## Dónde está cada cosa
 
-| Qué querés cambiar                        | Archivo                       |
-| ----------------------------------------- | ----------------------------- |
-| Nombre, edición, fecha, lema, organizador | `src/content/event.ts`        |
-| Distancias, horas de salida, categorías   | `src/content/distances.ts`    |
-| Premiación por distancia y rama           | `src/content/awards.ts`       |
-| Fases de preventa y precios               | `src/content/pricing.ts`      |
-| Kit del corredor                          | `src/content/kit.ts`          |
-| Sede, dirección, mapa, apertura           | `src/content/venue.ts`        |
-| Patrocinadores                            | `src/content/sponsors.ts`     |
-| Pilares del propósito social              | `src/content/purpose.ts`      |
-| Pasos y requisitos para inscribirse       | `src/content/registration.ts` |
-| Enlaces del menú                          | `src/content/navigation.ts`   |
-| Enlace de inscripción, redes, créditos    | `src/config/site.ts`          |
+| Qué querés cambiar                        | Archivo                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| Nombre, edición, fecha, lema, organizador | `src/content/event.ts`                                   |
+| Distancias, horas de salida, categorías   | `src/content/distances.ts`                               |
+| Premiación por distancia y rama           | `src/content/awards.ts`                                  |
+| Fases de preventa y precios               | `src/content/pricing.ts`                                 |
+| Kit del corredor                          | `src/content/kit.ts`                                     |
+| Sede, dirección, mapa, apertura           | `src/content/venue.ts`                                   |
+| Patrocinadores                            | `src/content/sponsors.ts`                                |
+| Pilares del propósito social              | `src/content/purpose.ts`                                 |
+| Pasos y requisitos para inscribirse       | `src/content/registration.ts`                            |
+| Textos del formulario y del reglamento    | `src/content/registration-form.ts`                       |
+| Códigos de descuento y QR de pago         | `src/lib/registration/payment-config.ts` (solo servidor) |
+| Textos de los correos al corredor         | `src/lib/email/templates.ts`                             |
+| Enlaces del menú                          | `src/content/navigation.ts`                              |
+| Enlace de inscripción, redes, créditos    | `src/config/site.ts`                                     |
+
+Los códigos y los QR no están en `src/content/` a propósito: ese contenido lo
+importan componentes del navegador, y los códigos terminarían en el JavaScript
+público. Cómo cambiarlos, y qué hacer cuando empiece la preventa 3, en
+[REGISTRATION.md](REGISTRATION.md).
 
 ## Reglas que conviene entender
 

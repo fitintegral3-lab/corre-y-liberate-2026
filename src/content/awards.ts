@@ -43,6 +43,19 @@ export const awards = z
     },
   ]);
 
+/**
+ * La 3K no reparte premios: es un recorrido no competitivo, asi que en la
+ * seccion de premiacion va una tarjeta que lo explica en vez de una tabla.
+ */
+export const familyRunCard = {
+  distanceId: '3k-infantil',
+  theme: 'dark',
+  title: 'FAMILIAR E INFANTIL',
+  description:
+    'Una experiencia diseñada para familias, corredores iniciales y niños, con una perspectiva pedagógica, participativa y no competitiva. Un espacio para disfrutar el movimiento, fortalecer los vínculos y descubrir que correr también es una forma de aprender, compartir y transformar.',
+  footer: 'RECORRIDO NO COMPETITIVO',
+} as const;
+
 export const awardsSection = {
   title: 'PREMIACIÓN ECONÓMICA',
   subtitle: 'PARA MUJERES Y HOMBRES EN CADA DISTANCIA',

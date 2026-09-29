@@ -55,10 +55,13 @@ Ver [CONTENT.md](CONTENT.md).
 
 ### `src/features/` — una carpeta por sección
 
-`hero/`, `awards/`, `pricing/`, `kit/`, `venue/`, `sponsors/`, `purpose/`,
-`edition/`, `registration/`. Cada una maqueta su sección y nada más: lee de
-`@/content`, pide derivaciones a `@/domain` y compone primitivas de
-`@/components/ui`.
+`hero/`, `awards/`, `pricing/`, `kit/`, `venue/`, `sponsors/`, `clubs/`,
+`routes/`, `purpose/`, `edition/`, `registration/`. Cada una maqueta su sección
+y nada más: lee de `@/content`, pide derivaciones a `@/domain` y compone
+primitivas de `@/components/ui`.
+
+Fuera de la landing: `registration-form/` es el formulario de `/inscripcion` y
+`admin/` la lista de la revisión de pagos.
 
 `awards/theme.ts` es el único lugar donde el contenido toca el estilo: traduce
 `'purple' | 'light' | 'dark'` a colores y clases. El contenido dice cuál tarjeta
@@ -66,9 +69,10 @@ es; qué significa eso en píxeles se decide en la feature.
 
 ### `src/components/` — lo compartido
 
-`ui/` tiene tres primitivas y no más: `Container` (el lienzo de 1366px),
-`CtaLink` (el botón de inscripción que se repite seis veces) y `DotPattern` (la
-trama de puntos de la identidad). No hay un `SectionHeading` genérico a
+`ui/` tiene cuatro primitivas: `Container` (el lienzo de 1366px), `CtaLink`
+(el botón de inscripción que se repite en varias secciones), `DotPattern` (la
+trama de puntos de la identidad) y `LogoMarquee` (la tira de logos con su modal,
+que usan patrocinadores y clubes). No hay un `SectionHeading` genérico a
 propósito: los encabezados de las nueve secciones son demasiado distintos entre
 sí, y un componente con nueve props sería peor que el marcado repetido.
 
@@ -82,15 +86,23 @@ sí, y un componente con nueve props sería peor que el marcado repetido.
   renderiza la página.
 - `env.ts` — variables de entorno validadas.
 - `utils/cn.ts` — unión de clases de Tailwind con resolución de conflictos.
+- La inscripción: `registration/` (el servicio que valida, cobra y guarda, y la
+  configuración de códigos y QR, solo servidor), `supabase/`, `gcs/`
+  (comprobantes), `sheets/` (la planilla), `email/`, `google/` (la cuenta de
+  servicio) y `admin/`. Detalle en [REGISTRATION.md](REGISTRATION.md).
+- `build/` — ajuste de Turbopack para compilar con `node_modules` enlazado (lo
+  usa el guard de commits).
 
 ## Decisiones y por qué
 
 ### Servidor por defecto, cliente por excepción
 
-La página entera era un componente cliente. Ahora el único `'use client'` del
-proyecto es `SiteHeader`, y lo es porque el menú móvil es estado. Todo lo demás
-—el hero, las tablas de premios, los precios, el footer— se renderiza en el
-servidor y llega como HTML.
+La página entera era un componente cliente. Ahora `'use client'` queda solo
+donde hay estado o interacción: `SiteHeader` (el menú móvil), `LogoMarquee` (el
+modal de los logos), `RouteButton` (el mapa de cada distancia), el formulario de
+inscripción con su QR, la lista de la administración y la página de error. Todo
+lo demás —el hero, las tablas de premios, los precios, el footer— se renderiza
+en el servidor y llega como HTML.
 
 Se quitó `framer-motion` (~100 KB) en el mismo movimiento: no lo usaba ningún
 componente vivo, solo el árbol muerto.
@@ -189,12 +201,20 @@ renderizar en cada visita.
 `next.config.ts` fija CSP, `X-Frame-Options`, `Referrer-Policy`,
 `Permissions-Policy` y HSTS.
 
+`src/proxy.ts` protege la administración de pagos con usuario y contraseña; la
+página y cada una de sus rutas vuelven a verificar. Los datos de los corredores
+viven detrás del servidor: la tabla de Supabase no tiene políticas públicas, el
+bucket de comprobantes es privado y ninguna credencial lleva `NEXT_PUBLIC_`. Los
+códigos de descuento tampoco llegan al navegador, y `npm run check:bundle` lo
+comprueba en CI. Detalle en [REGISTRATION.md](REGISTRATION.md).
+
 **Deuda consciente:** la CSP admite `script-src 'unsafe-inline'` porque el App
 Router inyecta su bootstrap y el payload de Flight como scripts inline sin
 nonce. La política sigue sirviendo —corta scripts de terceros, fija
 `frame-ancestors` y `form-action`— pero no protege contra inyección inline. El
-paso a nonces exige un `proxy.ts` que los emita por request. Está anotado acá
-porque es una decisión, no un olvido.
+paso a nonces exige que `proxy.ts` los emita en cada request; el archivo ya
+existe para la administración, pero emitir nonces ahí sigue pendiente. Está
+anotado acá porque es una decisión, no un olvido.
 
 ### Analítica
 

@@ -14,8 +14,14 @@ export const siteConfig = {
   url: env.NEXT_PUBLIC_SITE_URL,
 
   links: {
-    /** Plataforma externa de inscripciones. Es la conversion del sitio. */
-    registration: 'https://cronometrajeinstantaneo.com/inscripciones/corre-y-liberate',
+    /**
+     * Formulario de inscripcion propio. Es la conversion del sitio.
+     *
+     * Antes era la plataforma externa de cronometraje; se deja para volver a
+     * ella si el formulario propio deja de recibir inscripciones:
+     * registration: 'https://cronometrajeinstantaneo.com/inscripciones/corre-y-liberate',
+     */
+    registration: '/inscripcion',
     instagram: 'https://www.instagram.com/correyliberate',
     whatsapp: 'https://wa.me/573001613479',
     /**

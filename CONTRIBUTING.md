@@ -42,7 +42,8 @@ no el cómo. Cada línea, 70 caracteres como máximo.
 - Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`,
   `ci`, `build`.
 - Scopes de este repo: `app`, `content`, `domain`, `features`, `ui`, `seo`,
-  `a11y`, `perf`, `lib`, `config`, `deps`, `ci`, `ops`, `docs`, `test`. Se usa
+  `a11y`, `perf`, `lib`, `config`, `deps`, `ci`, `ops`, `docs`, `test`,
+  `registration` (inscripción, pago, correos) y `admin` (revisión de pagos). Se usa
   cuando el cambio está acotado a un módulo; se omite si toca varios.
 - La descripción empieza en minúscula, en imperativo, sin punto final.
 - **Sin trailers**: nada de `Co-Authored-By` ni `Signed-off-by`.
@@ -64,14 +65,16 @@ La convención completa, con la tabla de cuándo usar cada tipo, está en
 
 ## Dónde va cada cambio
 
-| Si cambiás…                           | Va en…                                                  |
-| ------------------------------------- | ------------------------------------------------------- |
-| Un precio, una fecha, un patrocinador | `src/content/` — ver [docs/CONTENT.md](docs/CONTENT.md) |
-| Una regla del evento                  | `src/domain/` + su prueba                               |
-| El maquetado de una sección           | `src/features/<seccion>/`                               |
-| Algo que usan varias secciones        | `src/components/ui/`                                    |
-| Colores, tipografía, tokens           | `src/app/globals.css`                                   |
-| Enlaces externos, créditos            | `src/config/site.ts`                                    |
+| Si cambiás…                           | Va en…                                                        |
+| ------------------------------------- | ------------------------------------------------------------- |
+| Un precio, una fecha, un patrocinador | `src/content/` — ver [docs/CONTENT.md](docs/CONTENT.md)       |
+| Una regla del evento                  | `src/domain/` + su prueba                                     |
+| El maquetado de una sección           | `src/features/<seccion>/`                                     |
+| Algo que usan varias secciones        | `src/components/ui/`                                          |
+| Colores, tipografía, tokens           | `src/app/globals.css`                                         |
+| Enlaces externos, créditos            | `src/config/site.ts`                                          |
+| Códigos de descuento y QR de pago     | `src/lib/registration/payment-config.ts` (solo servidor)      |
+| La inscripción, correos, planilla     | `src/lib/` — ver [docs/REGISTRATION.md](docs/REGISTRATION.md) |
 
 Lo que **no** se edita a mano: `ops/` y `.claude/skills/`, `.claude/workflows/`.
 Los regenera `cd ops && make install-claude` desde la dependencia de Cauce.
@@ -79,6 +82,7 @@ Los regenera `cd ops && make install-claude` desde la dependencia de Cauce.
 ## Definición de terminado
 
 - [ ] `npm run verify` pasa (lint + tipos + pruebas).
+- [ ] Si tocaste la inscripción o los códigos: `npm run build && npm run check:bundle` pasa.
 - [ ] Si tocaste el dominio, hay una prueba que cubre el caso.
 - [ ] Si tocaste una sección, la miraste en 375px y en escritorio.
 - [ ] Los enlaces externos llevan `target="_blank"` y `rel="noopener noreferrer"`.
