@@ -36,6 +36,7 @@ export const discountCodes = z.array(discountCodeSchema).parse([
   { code: 'STMARMOLEJO', owner: 'St Marmolejo' },
   { code: 'PABLOBOTINA', owner: 'Pablo Botina' },
   { code: 'JDMORALES', owner: 'Jd Morales' },
+  { code: 'COLCRECER', owner: 'Colcrecer' },
 ]);
 
 /**

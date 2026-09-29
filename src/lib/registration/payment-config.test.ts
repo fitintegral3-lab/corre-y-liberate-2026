@@ -47,7 +47,14 @@ describe('pago por QR', () => {
 
   it('los codigos que se reparten cobran el QR con descuento', () => {
     const duringPresale2 = new Date('2026-10-15T15:00:00Z');
-    for (const code of ['SAMIRZABALETA', 'VALECORRE', 'STMARMOLEJO', 'PABLOBOTINA', 'JDMORALES'])
+    for (const code of [
+      'SAMIRZABALETA',
+      'VALECORRE',
+      'STMARMOLEJO',
+      'PABLOBOTINA',
+      'JDMORALES',
+      'COLCRECER',
+    ])
       expect(quote('5k', code.toLowerCase(), duringPresale2), code).toMatchObject({
         ok: true,
         price: { code, total: 108_000 },
