@@ -54,8 +54,6 @@ export function SiteHeader() {
         <div className="hidden items-center lg:flex">
           <a
             href={siteConfig.links.registration}
-            target="_blank"
-            rel="noopener noreferrer"
             className="cursor-pointer rounded-full bg-brand-orange px-9 py-3 font-athletic-bold text-xs tracking-wider text-white shadow-lg shadow-orange-900/25 transition-all duration-300 hover:scale-[1.08] hover:bg-brand-orange-bright hover:shadow-xl hover:shadow-orange-500/40 active:scale-95"
           >
             INSCRÍBETE
@@ -92,8 +90,6 @@ export function SiteHeader() {
           ))}
           <a
             href={siteConfig.links.registration}
-            target="_blank"
-            rel="noopener noreferrer"
             className="mt-2 cursor-pointer rounded-full bg-brand-orange py-3.5 text-center font-athletic-bold text-xs text-white shadow-md shadow-orange-900/30 transition-all duration-300 hover:scale-[1.04] hover:bg-brand-orange-bright active:scale-95"
           >
             INSCRÍBETE
