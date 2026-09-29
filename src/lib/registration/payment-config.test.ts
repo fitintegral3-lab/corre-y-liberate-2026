@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { presalePhases } from '@/content';
 import { priceFor } from '@/domain/event/selectors';
 import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
+import { quote } from '@/lib/registration/service';
 
 import type { DistanceId } from '@/domain/event/schema';
 
@@ -42,6 +43,15 @@ describe('pago por QR', () => {
         expect(qrs.discount.image.startsWith('/qr/')).toBe(false);
       }
     }
+  });
+
+  it('los codigos que se reparten cobran el QR con descuento', () => {
+    const duringPresale2 = new Date('2026-10-15T15:00:00Z');
+    for (const code of ['SAMIRZABALETA', 'VALECORRE', 'STMARMOLEJO', 'PABLOBOTINA', 'JDMORALES'])
+      expect(quote('5k', code.toLowerCase(), duringPresale2), code).toMatchObject({
+        ok: true,
+        price: { code, total: 108_000 },
+      });
   });
 
   it('no repite codigos de descuento', () => {
