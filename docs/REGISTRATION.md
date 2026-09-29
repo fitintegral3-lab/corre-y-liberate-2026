@@ -165,6 +165,4 @@ slug=$(openssl rand -hex 12) && pass=$(openssl rand -base64 30 | tr -dc 'A-Za-z0
 
 ## Pendiente
 
-- Enlazar los botones «Inscríbete» de la página principal a `/inscripcion` cuando se decida dejar de usar
-  cronometraje.
 - Tallas infantiles para el 3K, si la organización las va a tener.

@@ -4,8 +4,10 @@ Landing oficial de la carrera atlética **Corre y Libérate**, 2ª edición —
 domingo 22 de noviembre de 2026, Estadio El Cacique, Jamundí (Valle del Cauca).
 Organiza Integral Fit.
 
-El sitio tiene un solo objetivo medible: que quien entra termine inscrito en la
-plataforma de cronometraje. Todo lo demás está subordinado a eso.
+El sitio tiene un solo objetivo medible: que quien entra termine inscrito. La
+inscripción es propia, en `/inscripcion`: datos del corredor, pago por QR Bre-B
+y comprobante, con revisión del pago por parte de la organización. Todo lo demás
+está subordinado a eso.
 
 ---
 
@@ -18,6 +20,10 @@ plataforma de cronometraje. Todo lo demás está subordinado a eso.
 | Estilos    | Tailwind CSS v4 con tokens `@theme`                     | Los colores de marca son tokens, no literales repetidos.                                                         |
 | Validación | Zod                                                     | El contenido y las variables de entorno se validan al importarse; un dato malo rompe el build, no la producción. |
 | Pruebas    | Vitest                                                  | Dominio y formateadores, sin montar React.                                                                       |
+| Datos      | Supabase (Postgres)                                     | Las inscripciones. Tabla con RLS y sin políticas: solo el servidor lee y escribe.                                |
+| Archivos   | Google Cloud Storage                                    | Los comprobantes de pago, en un bucket privado.                                                                  |
+| Planilla   | Google Sheets                                           | Copia de cada inscripción para la organización, con enlace al comprobante.                                       |
+| Correo     | Gmail (nodemailer)                                      | Confirmación al inscribirse y aviso al aprobar o rechazar el pago.                                               |
 | Operación  | [Cauce](https://github.com/ingeniomaps/cauce) en `ops/` | El ciclo idea → backlog → WIP → evidencia, con una sola fuente de verdad.                                        |
 
 ## Arrancar
@@ -35,34 +41,38 @@ El sitio queda en <http://localhost:3000>.
 
 ## Comandos
 
-| Comando                           | Qué hace                                    |
-| --------------------------------- | ------------------------------------------- |
-| `npm run dev`                     | Servidor de desarrollo.                     |
-| `npm run build`                   | Build de producción.                        |
-| `npm start`                       | Sirve el build.                             |
-| `npm run verify`                  | Lint + tipos + pruebas. Es lo que corre CI. |
-| `npm run lint` / `lint:fix`       | ESLint.                                     |
-| `npm run typecheck`               | `tsc --noEmit`.                             |
-| `npm test` / `test:watch`         | Vitest.                                     |
-| `npm run format` / `format:check` | Prettier.                                   |
-| `npm run ops:check`               | Valida el planning de Cauce.                |
-| `npm run ops:tree`                | Muestra roadmap, backlog, WIP y done.       |
+| Comando                           | Qué hace                                                          |
+| --------------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`                     | Servidor de desarrollo.                                           |
+| `npm run build`                   | Build de producción.                                              |
+| `npm run check:bundle`            | Después del build: ningún código de descuento llega al navegador. |
+| `npm start`                       | Sirve el build.                                                   |
+| `npm run verify`                  | Lint + tipos + pruebas. Es lo que corre CI.                       |
+| `npm run lint` / `lint:fix`       | ESLint.                                                           |
+| `npm run typecheck`               | `tsc --noEmit`.                                                   |
+| `npm test` / `test:watch`         | Vitest.                                                           |
+| `npm run format` / `format:check` | Prettier.                                                         |
+| `npm run ops:check`               | Valida el planning de Cauce.                                      |
+| `npm run ops:tree`                | Muestra roadmap, backlog, WIP y done.                             |
 
 ## Estructura
 
 ```text
 src/
-├── app/          Rutas. Solo compone: layout, página, sitemap, robots, OG image, /api/health.
+├── app/          Rutas: la landing, /inscripcion, la administración de pagos (/p/<secreto>),
+│                 /api/inscripcion/*, sitemap, robots, OG image, /api/health.
 ├── features/     Una carpeta por sección de la landing. Maquetado y nada más.
 ├── components/   layout/ (header, footer, FAB) y ui/ (primitivas compartidas).
 ├── content/      EL CONTENIDO DEL EVENTO. Precios, fechas, premios, patrocinadores.
 ├── domain/       Tipos, esquemas Zod y reglas puras del evento. Sin React.
-├── lib/          Formateo es-CO, SEO, entorno validado, utilidades.
+├── lib/          Formateo es-CO, SEO, entorno validado, y los servicios de la inscripción:
+│                 supabase/, gcs/, sheets/, email/, google/, registration/, admin/.
+├── proxy.ts      Pide usuario y contraseña para la administración de pagos.
 ├── config/       Configuración del sitio: URL canónica, enlaces externos, créditos.
 └── styles/       Fuentes auto-hospedadas.
 
 ops/              Instancia de Cauce: planning, organización, flujos.
-docs/             Arquitectura, ramas, despliegue y cómo editar contenido.
+docs/             Arquitectura, ramas, despliegue, cómo editar contenido y la inscripción.
 ```
 
 La regla que ordena todo: **`domain` no sabe de React, `content` no sabe de
@@ -79,6 +89,14 @@ esquema del dominio al construir, así que un precio negativo o una fecha
 inexistente rompen el build con el campo y el motivo.
 
 Guía paso a paso en [docs/CONTENT.md](docs/CONTENT.md).
+
+## Inscripción y pagos
+
+Cómo funciona el formulario, los códigos de descuento, los QR, dónde quedan los
+datos y los comprobantes, los correos y la revisión de pagos:
+[docs/REGISTRATION.md](docs/REGISTRATION.md). El pago en línea con Wompi quedó
+construido y en pausa: [docs/PAYMENTS-WOMPI.md](docs/PAYMENTS-WOMPI.md), solo en
+la rama `feat/wompi-checkout`.
 
 ## Ramas y entornos
 
