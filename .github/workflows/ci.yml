@@ -66,6 +66,9 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://correyliberate.com
           NEXT_PUBLIC_APP_ENV: production
 
+      - name: Codigos de descuento fuera del navegador
+        run: npm run check:bundle
+
   planning:
     name: Planning de Cauce
     runs-on: ubuntu-latest

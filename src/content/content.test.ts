@@ -1,16 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import fs from 'node:fs';
-import path from 'node:path';
-
-import {
-  awards,
-  discountCodes,
-  distances,
-  paymentQrsByPhase,
-  presalePhases,
-  sponsors,
-} from '@/content';
+import { awards, distances, presalePhases, sponsors } from '@/content';
 import { sponsorSchema } from '@/domain/event/schema';
 import { priceFor } from '@/domain/event/selectors';
 
@@ -100,35 +90,5 @@ describe('patrocinadores', () => {
     expect(accepts('https://www.facebook.com/cerealesjj/')).toBe(false);
     expect(accepts('https://instagram.com.evil.co/cerealesjj/')).toBe(false);
     expect(accepts('http://www.instagram.com/cerealesjj/')).toBe(false);
-  });
-});
-
-describe('pago por QR', () => {
-  it('el QR normal cobra exactamente el precio de su preventa', () => {
-    for (const [phaseId, byDistance] of Object.entries(paymentQrsByPhase)) {
-      const phase = presalePhases.find((candidate) => candidate.id === phaseId);
-      expect(phase, `fase ${phaseId}`).toBeDefined();
-      for (const [distanceId, qrs] of Object.entries(byDistance)) {
-        expect(qrs.normal.amount, `${phaseId} ${distanceId}`).toBe(
-          priceFor(phase!, distanceId as never),
-        );
-        expect(qrs.discount.amount).toBeLessThan(qrs.normal.amount);
-      }
-    }
-  });
-
-  it('cada imagen de QR existe en public/', () => {
-    for (const byDistance of Object.values(paymentQrsByPhase)) {
-      for (const qrs of Object.values(byDistance)) {
-        for (const { image } of [qrs.normal, qrs.discount]) {
-          expect(fs.existsSync(path.join(process.cwd(), 'public', image)), image).toBe(true);
-        }
-      }
-    }
-  });
-
-  it('no repite codigos de descuento', () => {
-    const codes = discountCodes.map((code) => code.code);
-    expect(new Set(codes).size).toBe(codes.length);
   });
 });

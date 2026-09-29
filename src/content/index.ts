@@ -29,6 +29,5 @@ export {
 export { purposePillars, purposeSection } from '@/content/purpose';
 export { registrationErrors, registrationFormCopy, terms } from '@/content/registration-form';
 export type { RegistrationErrorReason } from '@/content/registration-form';
-export { discountCodes, paymentQrsByPhase } from '@/content/registration-payment';
 export { sponsors, sponsorsSection } from '@/content/sponsors';
 export { venue, venueFullAddress, venueSection } from '@/content/venue';

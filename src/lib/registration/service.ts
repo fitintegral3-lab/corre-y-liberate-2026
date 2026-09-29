@@ -1,16 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
-import {
-  discountCodes,
-  distances,
-  event,
-  paymentQrsByPhase,
-  presalePhases,
-  terms,
-} from '@/content';
+import { distances, event, presalePhases, terms } from '@/content';
 import { distanceIdSchema } from '@/domain/event/schema';
 import { priceRegistration, type PriceResult } from '@/domain/registration/pricing';
 import { categoryFor, registrationSchema } from '@/domain/registration/schema';
+import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { RECEIPTS_BUCKET, type SupabaseConfig } from '@/lib/supabase/config';
 

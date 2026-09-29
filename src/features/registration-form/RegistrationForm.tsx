@@ -453,7 +453,7 @@ export function RegistrationForm({
                   id="code"
                   value={codeInput}
                   onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
-                  placeholder="EJ: VALECORRE"
+                  placeholder="TU CÓDIGO"
                   autoComplete="off"
                   maxLength={20}
                   className={`${inputClass} min-w-0 flex-1 tracking-wider uppercase`}
