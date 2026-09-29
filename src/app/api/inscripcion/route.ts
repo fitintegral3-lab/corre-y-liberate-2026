@@ -1,5 +1,8 @@
 import { after } from 'next/server';
 
+import { emailConfig } from '@/lib/email/config';
+import { sendEmail } from '@/lib/email/send';
+import { registrationReceivedEmail } from '@/lib/email/templates';
 import { receiptsConfig } from '@/lib/gcs/receipts';
 import { submitRegistration } from '@/lib/registration/service';
 import { appendRegistration } from '@/lib/sheets/append';
@@ -30,6 +33,31 @@ export async function POST(request: Request): Promise<Response> {
     after(() =>
       appendRegistration(sheets, result.record).catch((error: unknown) => {
         console.error('[sheets] no se copio la inscripcion', result.id, (error as Error).message);
+      }),
+    );
+  }
+
+  // El correo de "recibimos tu inscripcion" sale igual despues de responder:
+  // si Gmail falla, la inscripcion ya quedo guardada y el error queda en el log.
+  const mail = emailConfig();
+  if (mail) {
+    const { record } = result;
+    after(() =>
+      sendEmail(
+        mail,
+        record.email,
+        registrationReceivedEmail({
+          firstName: record.firstName,
+          category: record.category,
+          total: record.total,
+          referralCode: record.referralCode,
+        }),
+      ).catch((error: unknown) => {
+        console.error(
+          '[correo] no se envio la confirmacion de',
+          result.id,
+          (error as Error).message,
+        );
       }),
     );
   }

@@ -112,11 +112,38 @@ en Supabase, que es la fuente de verdad. El error queda en el log con el id de l
   Google detiene los recursos (el bucket incluido) salvo que se pase a una cuenta pagada. Antes de esa fecha
   hay que actualizarla o descargar los comprobantes.
 
+## Correos al corredor
+
+Tres correos, enviados desde el Gmail de la organización (`GMAIL_USER`) con una contraseña de aplicación
+(`GMAIL_APP_PASSWORD`). Gmail personal permite unos 500 por día.
+
+| Cuándo                                  | Correo                                                                              | Cómo se dispara                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Al inscribirse                          | «Recibimos tu inscripción»: carrera, valor, código, y que se está revisando el pago | `/api/inscripcion`, después de responder (`after()`) |
+| Al pasar `payment_status` a `aprobado`  | «¡Tu inscripción está confirmada!»                                                  | Webhook de Supabase → `/api/inscripcion/estado`      |
+| Al pasar `payment_status` a `rechazado` | «No pudimos validar tu pago», con el WhatsApp                                       | Igual                                                |
+
+- Si Gmail falla, la inscripción ya está guardada: el error queda en el log con el id.
+- El correo de aprobado o rechazado sale **solo si el estado cambió**: editar el dorsal de una fila ya
+  aprobada no le vuelve a escribir al corredor.
+- Todo lo que escribió el corredor se escapa antes de entrar al HTML del correo.
+
+### Webhook de Supabase (una vez, en el panel)
+
+Database → Webhooks → Create a new hook:
+
+- Tabla `registrations`, evento **Update**, tipo **HTTP Request**, método **POST**.
+- URL: `https://<dominio del sitio>/api/inscripcion/estado` (en DEV, la URL de la preview de Vercel).
+- Encabezado HTTP `x-webhook-secret` con el mismo valor de `SUPABASE_WEBHOOK_SECRET`. Sin ese secreto la
+  ruta responde 401 y no envía nada.
+
+Supabase no puede llamar a `localhost`: el correo de aprobado/rechazado se prueba con el sitio publicado.
+
 ## Revisar pagos
 
 Hoy desde Supabase > Table Editor > `registrations`: filtrar `payment_status = pendiente`, abrir el
 comprobante desde el enlace de la hoja (o en el bucket con la ruta de `receipt_path`), y cambiar el estado a `aprobado` o
-`rechazado`. **Comparar el monto del comprobante con `total`**: una inscripción sin código tiene que
+`rechazado`: el corredor recibe el correo correspondiente. **Comparar el monto del comprobante con `total`**: una inscripción sin código tiene que
 haber pagado el precio lleno, aunque alguien le haya pasado el QR con descuento. `bib_number` es para el número de dorsal.
 
 ## Pendiente
