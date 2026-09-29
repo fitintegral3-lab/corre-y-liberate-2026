@@ -18,9 +18,13 @@ export async function POST(request: Request, { params }: Context): Promise<Respo
     return new Response(null, { status: 404 });
 
   // Solo desde la propia pagina: otro sitio no puede disparar un cambio
-  // aprovechando que el navegador ya tiene las credenciales guardadas.
+  // aprovechando que el navegador ya tiene las credenciales guardadas. Se
+  // exige el Origin (el navegador lo manda siempre en un POST por fetch) y JSON:
+  // un formulario de otro sitio no puede mandar JSON sin que el navegador
+  // pida permiso antes.
   const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin) return new Response(null, { status: 403 });
+  const isJson = request.headers.get('content-type')?.startsWith('application/json') ?? false;
+  if (origin !== new URL(request.url).origin || !isJson) return new Response(null, { status: 403 });
 
   const body = (await request.json().catch(() => null)) as {
     id?: unknown;
