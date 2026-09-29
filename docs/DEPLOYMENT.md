@@ -92,7 +92,7 @@ se cachea nunca: un chequeo de salud cacheado no chequea nada.
 Además vale la pena mirar, después de cada release:
 
 - `https://correyliberate.com/robots.txt` — debe permitir `/` y apuntar al sitemap.
-- `https://correyliberate.com/sitemap.xml` — una URL, la raíz.
+- `https://correyliberate.com/sitemap.xml` — la raíz y `/inscripcion` (esta solo si la inscripción está configurada).
 - `https://correyliberate.com/opengraph-image` — la imagen de vista previa.
 - Pegar el enlace en un chat de WhatsApp y ver que aparezca la tarjeta.
 
