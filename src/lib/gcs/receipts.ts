@@ -114,3 +114,20 @@ export async function receiptExists(config: ReceiptsConfig, objectName: string):
     throw new Error(`Cloud Storage respondio ${response.status} al buscar ${objectName}`);
   return true;
 }
+
+/** Descarga un comprobante para mostrarlo en la administracion, sin iniciar sesion en Google. */
+export async function downloadReceipt(
+  config: ReceiptsConfig,
+  objectName: string,
+): Promise<{ body: ArrayBuffer; contentType: string } | null> {
+  const token = await accessToken(config.account, [SCOPE]);
+  const url = `${API}/storage/v1/b/${encodeURIComponent(config.bucket)}/o/${encodeURIComponent(objectName)}?alt=media`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (response.status === 404) return null;
+  if (!response.ok)
+    throw new Error(`Cloud Storage respondio ${response.status} al leer ${objectName}`);
+  return {
+    body: await response.arrayBuffer(),
+    contentType: response.headers.get('content-type') ?? 'application/octet-stream',
+  };
+}

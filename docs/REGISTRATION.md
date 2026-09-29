@@ -141,10 +141,27 @@ Supabase no puede llamar a `localhost`: el correo de aprobado/rechazado se prueb
 
 ## Revisar pagos
 
-Hoy desde Supabase > Table Editor > `registrations`: filtrar `payment_status = pendiente`, abrir el
-comprobante desde el enlace de la hoja (o en el bucket con la ruta de `receipt_path`), y cambiar el estado a `aprobado` o
-`rechazado`: el corredor recibe el correo correspondiente. **Comparar el monto del comprobante con `total`**: una inscripción sin código tiene que
-haber pagado el precio lleno, aunque alguien le haya pasado el QR con descuento. `bib_number` es para el número de dorsal.
+En la página de administración, `/p/<ADMIN_SLUG>`:
+
+- La dirección no está en el repositorio y además el navegador pide **usuario y contraseña**
+  (`ADMIN_USER`, `ADMIN_PASSWORD`). Cualquier otra dirección bajo `/p/` responde 404. Se verifica en
+  `src/proxy.ts` y otra vez en la página y en cada ruta, como pide la guía de Next 16.
+- Muestra las inscripciones filtradas por estado (pendiente por defecto), con **la foto del comprobante**
+  (la sirve el servidor desde el bucket, sin iniciar sesión en Google) y el valor que tenía que pagar.
+- **Aprobar / Rechazar / Devolver a pendiente**: cambia `payment_status` en Supabase —su webhook le escribe
+  al corredor— y la columna «Estado pago» de la hoja, buscando la fila por el ID. Si la fila no está en la
+  hoja (inscripción anterior a la copia a Drive) se avisa y no se inventa.
+- **Comparar el monto del comprobante con el valor a pagar**: una inscripción sin código tiene que haber
+  pagado el precio lleno, aunque alguien le haya pasado el QR con descuento.
+
+También se puede cambiar el estado desde Supabase > Table Editor > `registrations`; el correo sale igual,
+pero la hoja **no** se actualiza por ese camino.
+
+Para generar la dirección y la contraseña (las imprime solo en tu terminal):
+
+```bash
+slug=$(openssl rand -hex 12) && pass=$(openssl rand -base64 30 | tr -dc 'A-Za-z0-9' | cut -c1-28) && echo "ADMIN_SLUG=$slug" && echo "ADMIN_PASSWORD=$pass"
+```
 
 ## Pendiente
 
