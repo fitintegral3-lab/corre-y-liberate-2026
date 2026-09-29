@@ -47,4 +47,6 @@ if (leaks.length > 0) {
   );
   process.exit(1);
 }
-process.stdout.write(`check-client-bundle: ${codes.length} codigos revisados, ninguno llega al navegador.\n`);
+process.stdout.write(
+  `check-client-bundle: ${codes.length} codigos revisados, ninguno llega al navegador.\n`,
+);
