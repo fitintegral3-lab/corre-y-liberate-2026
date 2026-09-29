@@ -33,12 +33,15 @@ const requiredText = (label: string, max = 120) =>
     .min(1, `${label} es obligatorio`)
     .max(max, `${label} es demasiado largo`);
 
+// `nullish` y no `optional`: un campo que el formulario no muestra (la
+// condicion medica cuando la respuesta es "No") llega como `null` desde
+// FormData, y rechazarlo daba un error sobre un campo que nadie ve.
 const optionalText = (max = 200) =>
   z
     .string()
     .trim()
     .max(max)
-    .optional()
+    .nullish()
     .transform((value) => (value ? value : null));
 
 /** Cedula sin puntos, espacios ni guiones: `1.144.135.260` es `1144135260`. */
@@ -94,7 +97,7 @@ export const registrationSchema = z
     observation: optionalText(500),
     referralCode: z
       .string()
-      .optional()
+      .nullish()
       .transform((value) => {
         const code = (value ?? '').trim().toUpperCase();
         return code === '' ? null : code;

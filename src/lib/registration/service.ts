@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { distances, event, presalePhases, terms } from '@/content';
 import { distanceIdSchema } from '@/domain/event/schema';
 import { priceRegistration, type PriceResult } from '@/domain/registration/pricing';
-import { categoryFor, registrationSchema } from '@/domain/registration/schema';
+import { categoryFor, cedulaSchema, registrationSchema } from '@/domain/registration/schema';
 import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { RECEIPTS_BUCKET, type SupabaseConfig } from '@/lib/supabase/config';
@@ -65,6 +65,18 @@ export async function createReceiptUpload(
   return { ok: true, path: data.path, token: data.token };
 }
 
+/** Si ya hay una inscripcion con esa cedula en esta edicion. */
+async function cedulaTaken(config: SupabaseConfig, cedula: string): Promise<boolean> {
+  const { count, error } = await supabaseAdmin(config)
+    .from('registrations')
+    .select('id', { count: 'exact', head: true })
+    .eq('edition', event.edition)
+    .eq('cedula', cedula);
+  // Si la consulta falla no se frena a nadie: la restriccion unica de la tabla
+  // lo vuelve a comprobar al guardar.
+  return !error && (count ?? 0) > 0;
+}
+
 export type SubmitResult =
   | { ok: true; id: string; total: number; category: string }
   | { ok: false; reason: RegistrationErrorReason; fields?: Record<string, string> };
@@ -85,6 +97,19 @@ export async function submitRegistration(
     for (const issue of parsed.error.issues) {
       const key = String(issue.path[0] ?? 'form');
       fields[key] ??= issue.message;
+    }
+    // Si lo unico que falta es el comprobante, es la validacion previa a
+    // subirlo: se aprovecha para avisar una cedula repetida antes de que la
+    // persona suba el archivo, que si no quedaria huerfano en el bucket.
+    if (Object.keys(fields).length === 1 && fields.receiptPath) {
+      const cedula = cedulaSchema.safeParse((payload as { cedula?: unknown } | null)?.cedula);
+      if (cedula.success && (await cedulaTaken(config, cedula.data))) {
+        return {
+          ok: false,
+          reason: 'duplicate-cedula',
+          fields: { cedula: 'Esta cédula ya está inscrita' },
+        };
+      }
     }
     return { ok: false, reason: 'invalid', fields };
   }

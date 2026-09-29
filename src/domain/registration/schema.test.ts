@@ -49,6 +49,19 @@ describe('registrationSchema', () => {
     });
   });
 
+  it('acepta como vacios los opcionales que el formulario no mostro', () => {
+    // Con "No" en la enfermedad, el campo de la condicion no se muestra y
+    // FormData lo manda como null.
+    const result = registrationSchema.safeParse({
+      ...valid,
+      medicalCondition: null,
+      team: null,
+      city: null,
+      observation: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('exige aceptar el reglamento', () => {
     expect(errorsOf({ ...valid, acceptedTerms: false })).toHaveProperty('acceptedTerms');
   });

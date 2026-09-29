@@ -10,7 +10,7 @@ export const registrationFormCopy = {
   eyebrow: 'INSCRIPCIÓN 2026',
   title: 'ASEGURA TU CUPO',
   intro:
-    'Llena tus datos, paga con el QR y sube el comprobante. Revisamos el pago y te confirmamos por correo.',
+    'Llena tus datos, paga con el QR Bre-B desde la app de tu banco o billetera y sube el comprobante. Revisamos el pago y te confirmamos por correo.',
   sections: {
     race: 'Tu carrera',
     personal: 'Tus datos',
