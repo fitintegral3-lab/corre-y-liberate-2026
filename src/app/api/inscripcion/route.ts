@@ -1,5 +1,6 @@
 import { after } from 'next/server';
 
+import { receiptsConfig } from '@/lib/gcs/receipts';
 import { submitRegistration } from '@/lib/registration/service';
 import { appendRegistration } from '@/lib/sheets/append';
 import { sheetsConfig } from '@/lib/sheets/config';
@@ -8,10 +9,12 @@ import { supabaseConfig } from '@/lib/supabase/config';
 /** Guarda una inscripcion. Recibe el formulario en JSON, con la ruta del comprobante ya subido. */
 export async function POST(request: Request): Promise<Response> {
   const config = supabaseConfig();
-  if (!config) return Response.json({ ok: false, reason: 'unavailable' }, { status: 503 });
+  const receipts = receiptsConfig();
+  if (!config || !receipts)
+    return Response.json({ ok: false, reason: 'unavailable' }, { status: 503 });
 
   const payload = await request.json().catch(() => null);
-  const result = await submitRegistration(config, payload);
+  const result = await submitRegistration(config, receipts, payload);
 
   if (!result.ok) {
     const status =

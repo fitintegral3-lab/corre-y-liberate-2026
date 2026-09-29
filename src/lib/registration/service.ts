@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import { distances, event, presalePhases, terms } from '@/content';
 import { distanceIdSchema } from '@/domain/event/schema';
 import { priceRegistration, type PriceResult } from '@/domain/registration/pricing';
@@ -7,7 +5,8 @@ import { categoryFor, cedulaSchema, registrationSchema } from '@/domain/registra
 import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { SheetRegistration } from '@/lib/sheets/registration-row';
-import { RECEIPTS_BUCKET, type SupabaseConfig } from '@/lib/supabase/config';
+import { receiptExists, receiptUrl, type ReceiptsConfig } from '@/lib/gcs/receipts';
+import type { SupabaseConfig } from '@/lib/supabase/config';
 
 import type { RegistrationErrorReason } from '@/content';
 
@@ -28,42 +27,6 @@ export function quote(
     qrsByPhase: paymentQrsByPhase,
     now,
   });
-}
-
-const RECEIPT_TYPES = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'application/pdf': 'pdf',
-} as const;
-const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
-
-/**
- * URL firmada para que el navegador suba el comprobante directo a Supabase.
- * El archivo no pasa por el servidor de Next: una foto de celular supera
- * facil el limite de cuerpo de una funcion de Vercel. La ruta la elige el
- * servidor, nunca el navegador.
- */
-export async function createReceiptUpload(
-  config: SupabaseConfig,
-  contentType: string,
-  size: number,
-): Promise<
-  { ok: true; path: string; token: string } | { ok: false; reason: RegistrationErrorReason }
-> {
-  const extension = RECEIPT_TYPES[contentType as keyof typeof RECEIPT_TYPES];
-  if (!extension || !Number.isFinite(size) || size <= 0 || size > MAX_RECEIPT_BYTES) {
-    return { ok: false, reason: 'receipt-invalid' };
-  }
-  const path = `pendientes/${randomUUID()}.${extension}`;
-  const { data, error } = await supabaseAdmin(config)
-    .storage.from(RECEIPTS_BUCKET)
-    .createSignedUploadUrl(path);
-  if (error || !data) {
-    console.error('[inscripcion] no se pudo firmar la subida:', error?.message);
-    return { ok: false, reason: 'unavailable' };
-  }
-  return { ok: true, path: data.path, token: data.token };
 }
 
 /** Si ya hay una inscripcion con esa cedula en esta edicion. */
@@ -89,6 +52,7 @@ export type SubmitResult =
  */
 export async function submitRegistration(
   config: SupabaseConfig,
+  receipts: ReceiptsConfig,
   payload: unknown,
   now = new Date(),
 ): Promise<SubmitResult> {
@@ -127,9 +91,12 @@ export async function submitRegistration(
   if (!priced.ok) return { ok: false, reason: priced.reason };
   const { price } = priced;
 
+  const found = await receiptExists(receipts, data.receiptPath).catch((error: unknown) => {
+    console.error('[inscripcion] no se pudo revisar el comprobante:', (error as Error).message);
+    return false;
+  });
+  if (!found) return { ok: false, reason: 'receipt-missing' };
   const supabase = supabaseAdmin(config);
-  const receipt = await supabase.storage.from(RECEIPTS_BUCKET).exists(data.receiptPath);
-  if (receipt.error || !receipt.data) return { ok: false, reason: 'receipt-missing' };
 
   const distanceLabel =
     distances.find((distance) => distance.id === data.distanceId)?.label ?? data.distanceId;
@@ -209,7 +176,7 @@ export async function submitRegistration(
     referralCode: price.code,
     basePrice: price.basePrice,
     total: price.total,
-    receiptPath: data.receiptPath,
+    receiptUrl: receiptUrl(receipts.bucket, data.receiptPath),
     observation: data.observation,
   };
   return { ok: true, id: record.id, total: price.total, category, record };

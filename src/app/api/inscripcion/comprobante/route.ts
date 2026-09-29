@@ -1,19 +1,40 @@
-import { createReceiptUpload } from '@/lib/registration/service';
-import { supabaseConfig } from '@/lib/supabase/config';
+import {
+  MAX_RECEIPT_BYTES,
+  RECEIPT_TYPES,
+  receiptObjectName,
+  receiptsConfig,
+  uploadReceipt,
+} from '@/lib/gcs/receipts';
 
-/** Firma la subida de un comprobante. Recibe `{ contentType, size }` en JSON. */
+/**
+ * Sube el comprobante al bucket privado de Cloud Storage y devuelve su ruta.
+ * Recibe `multipart/form-data` con el campo `file`. El nombre lo decide el
+ * servidor; el tipo y el tamano se vuelven a revisar aca aunque el navegador
+ * ya los haya filtrado.
+ */
 export async function POST(request: Request): Promise<Response> {
-  const config = supabaseConfig();
+  const config = receiptsConfig();
   if (!config) return Response.json({ ok: false, reason: 'unavailable' }, { status: 503 });
 
-  const body = (await request.json().catch(() => null)) as {
-    contentType?: unknown;
-    size?: unknown;
-  } | null;
-  const result = await createReceiptUpload(
-    config,
-    String(body?.contentType ?? ''),
-    Number(body?.size),
-  );
-  return Response.json(result, { status: result.ok ? 200 : 422 });
+  const form = await request.formData().catch(() => null);
+  const file = form?.get('file');
+  if (
+    !(file instanceof File) ||
+    file.size === 0 ||
+    file.size > MAX_RECEIPT_BYTES ||
+    !(file.type in RECEIPT_TYPES)
+  ) {
+    return Response.json({ ok: false, reason: 'receipt-invalid' }, { status: 422 });
+  }
+
+  const objectName = receiptObjectName(file.type);
+  if (!objectName) return Response.json({ ok: false, reason: 'receipt-invalid' }, { status: 422 });
+
+  try {
+    await uploadReceipt(config, objectName, await file.arrayBuffer(), file.type);
+  } catch (error) {
+    console.error('[comprobantes] no se pudo subir:', (error as Error).message);
+    return Response.json({ ok: false, reason: 'unavailable' }, { status: 503 });
+  }
+  return Response.json({ ok: true, path: objectName });
 }

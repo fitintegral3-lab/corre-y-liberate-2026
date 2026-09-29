@@ -1,6 +1,5 @@
 'use client';
 
-import { createClient } from '@supabase/supabase-js';
 import { CheckCircle2 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 
@@ -14,6 +13,7 @@ import { BLOOD_TYPES, SHIRT_SIZES } from '@/domain/registration/schema';
 import { RouteButton } from '@/features/routes/RouteButton';
 import { formatCop } from '@/lib/format';
 
+import { compressReceipt } from './compress-receipt';
 import { QrPayment } from './QrPayment';
 
 export interface DistanceOption {
@@ -34,8 +34,6 @@ interface Quote {
 
 interface RegistrationFormProps {
   distances: readonly DistanceOption[];
-  supabaseUrl: string;
-  supabasePublishableKey: string;
 }
 
 const inputClass =
@@ -57,11 +55,7 @@ function isReason(value: unknown): value is RegistrationErrorReason {
  * validar todo antes de guardar. Solo viaja el codigo ya aplicado, para que
  * nadie pague un monto distinto del QR que vio.
  */
-export function RegistrationForm({
-  distances,
-  supabaseUrl,
-  supabasePublishableKey,
-}: RegistrationFormProps) {
+export function RegistrationForm({ distances }: RegistrationFormProps) {
   const [distanceId, setDistanceId] = useState('');
   const [codeInput, setCodeInput] = useState('');
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -114,22 +108,12 @@ export function RegistrationForm({
 
   async function uploadReceipt(file: File): Promise<string> {
     if (uploaded?.file === file) return uploaded.path;
-    const signed = await fetch('/api/inscripcion/comprobante', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contentType: file.type, size: file.size }),
-    });
-    const body = (await signed.json()) as
-      { ok: true; path: string; token: string } | { ok: false; reason: string };
+    const form = new FormData();
+    form.append('file', await compressReceipt(file));
+    const response = await fetch('/api/inscripcion/comprobante', { method: 'POST', body: form });
+    const body = (await response.json().catch(() => ({ ok: false, reason: 'receipt-invalid' }))) as
+      { ok: true; path: string } | { ok: false; reason: string };
     if (!body.ok) throw new Error(isReason(body.reason) ? body.reason : 'unavailable');
-
-    const supabase = createClient(supabaseUrl, supabasePublishableKey, {
-      auth: { persistSession: false },
-    });
-    const { error } = await supabase.storage
-      .from('comprobantes')
-      .uploadToSignedUrl(body.path, body.token, file, { contentType: file.type });
-    if (error) throw new Error('receipt-invalid');
     setUploaded({ file, path: body.path });
     return body.path;
   }
@@ -495,7 +479,7 @@ export function RegistrationForm({
 
             <Field
               label="Comprobante de pago *"
-              hint="Foto o PDF, hasta 5 MB"
+              hint="Foto (la optimizamos al subirla) o PDF de hasta 4 MB"
               error={error('receiptPath')}
               htmlFor="receipt"
             >

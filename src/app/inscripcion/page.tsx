@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Container } from '@/components/ui';
 import { distances, homeAnchor, registrationErrors, registrationFormCopy } from '@/content';
 import { RegistrationForm } from '@/features/registration-form/RegistrationForm';
+import { receiptsConfig } from '@/lib/gcs/receipts';
 import { quote } from '@/lib/registration/service';
 import { supabaseConfig } from '@/lib/supabase/config';
 
@@ -25,8 +26,10 @@ export const revalidate = 3600;
  * puede guardar es peor que no tenerlo.
  */
 export default function InscripcionPage() {
+  // Sin base de datos o sin bucket de comprobantes la inscripcion no se puede
+  // completar: mejor 404 que un formulario que falla al final.
   const config = supabaseConfig();
-  if (!config) notFound();
+  if (!config || !receiptsConfig()) notFound();
 
   // Si no se puede cobrar la distancia mas barata, no se puede cobrar ninguna:
   // inscripciones cerradas o sin QR para la preventa vigente.
@@ -68,8 +71,6 @@ export default function InscripcionPage() {
               description: distance.description,
               routeImage: distance.routeImage,
             }))}
-            supabaseUrl={config.url}
-            supabasePublishableKey={config.publishableKey}
           />
         )}
       </Container>

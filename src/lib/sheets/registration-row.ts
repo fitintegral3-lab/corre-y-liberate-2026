@@ -2,8 +2,8 @@
  * Una inscripcion como fila de la hoja de Drive.
  *
  * Los encabezados siguen los de la planilla que exporta cronometraje, que es
- * la que la organizacion ya sabe leer; se agregan el codigo, los precios y la
- * ruta del comprobante. Todo va como texto: la hoja se escribe en modo RAW,
+ * la que la organizacion ya sabe leer; se agregan el codigo, los precios y el
+ * enlace al comprobante. Todo va como texto: la hoja se escribe en modo RAW,
  * asi que nada de lo que escriba un corredor se interpreta como formula.
  */
 export interface SheetRegistration {
@@ -32,7 +32,8 @@ export interface SheetRegistration {
   referralCode: string | null;
   basePrice: number;
   total: number;
-  receiptPath: string;
+  /** Enlace para abrir el comprobante con una cuenta de Google con permiso. */
+  receiptUrl: string;
   observation: string | null;
 }
 
@@ -61,7 +62,7 @@ export const SHEET_HEADERS = [
   'Código de descuento',
   'Precio',
   'Total a pagar',
-  'Comprobante (ruta en Supabase)',
+  'Comprobante',
   'Observaciones',
   'ID',
 ] as const;
@@ -101,7 +102,7 @@ export function toSheetRow(registration: SheetRegistration): string[] {
     registration.referralCode ?? '',
     String(registration.basePrice),
     String(registration.total),
-    registration.receiptPath,
+    registration.receiptUrl,
     registration.observation ?? '',
     registration.id,
   ];

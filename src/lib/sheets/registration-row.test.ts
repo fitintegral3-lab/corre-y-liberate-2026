@@ -34,7 +34,7 @@ const registration: SheetRegistration = {
   referralCode: 'VALECORRE',
   basePrice: 120_000,
   total: 108_000,
-  receiptPath: 'pendientes/x.png',
+  receiptUrl: 'https://storage.cloud.google.com/corre-y-liberate-comprobantes/pendientes/x.webp',
   observation: null,
 };
 
@@ -52,6 +52,8 @@ describe('toSheetRow', () => {
       '¿Se encuentra padeciendo alguna enfermedad?': 'SI',
       'Código de descuento': 'VALECORRE',
       'Total a pagar': '108000',
+      Comprobante:
+        'https://storage.cloud.google.com/corre-y-liberate-comprobantes/pendientes/x.webp',
       Ciudad: '',
       ID: registration.id,
     });
@@ -81,7 +83,7 @@ describe('readSheetsConfig', () => {
   });
 
   it('convierte los \\n escritos de la llave en saltos de linea', () => {
-    expect(readSheetsConfig(valid)?.privateKey).toBe(
+    expect(readSheetsConfig(valid)?.account.privateKey).toBe(
       '-----BEGIN PRIVATE KEY-----\nABC\n-----END PRIVATE KEY-----',
     );
   });

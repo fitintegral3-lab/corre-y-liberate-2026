@@ -4,13 +4,6 @@ import { turbopackRootFor } from './src/lib/build/turbopack-root';
 
 const isDev = process.env.NODE_ENV === 'development';
 
-/** Origen de Supabase, si esta configurado. Sin el, la CSP no abre nada extra. */
-const supabaseOrigin = /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-)
-  ? process.env.NEXT_PUBLIC_SUPABASE_URL
-  : null;
-
 /**
  * Politica de seguridad de contenido.
  *
@@ -27,8 +20,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  // El comprobante se sube desde el navegador directo a Supabase Storage.
-  `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ''}${isDev ? ' ws: http://localhost:*' : ''}`,
+  "connect-src 'self'" + (isDev ? ' ws: http://localhost:*' : ''),
   "frame-ancestors 'none'",
   "form-action 'self'",
   "base-uri 'self'",

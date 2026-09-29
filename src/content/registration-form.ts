@@ -40,7 +40,7 @@ export const registrationErrors = {
     'Ya hay una inscripción con esa cédula. Si crees que es un error, escríbenos por WhatsApp.',
   'receipt-missing': 'No encontramos tu comprobante. Vuelve a subirlo.',
   'receipt-invalid':
-    'El comprobante tiene que ser una imagen (JPG, PNG, WEBP) o PDF de hasta 5 MB.',
+    'El comprobante tiene que ser una foto (JPG, PNG, WEBP) o un PDF de hasta 4 MB.',
   invalid: 'Revisa los campos marcados.',
   unavailable: 'La inscripción no está disponible en este momento. Intenta más tarde.',
 } as const;

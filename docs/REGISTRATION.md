@@ -1,7 +1,8 @@
 # Inscripción propia
 
 Reemplaza al formulario de cronometrajeinstantaneo.com con los mismos campos, en `/inscripcion`. Los
-datos quedan en Supabase y el pago es por QR de monto fijo, con comprobante que revisa una persona.
+datos quedan en Supabase, los comprobantes en Google Cloud Storage y el pago es por QR de monto fijo, con
+comprobante que revisa una persona.
 
 ## Cómo funciona
 
@@ -10,9 +11,9 @@ datos quedan en Supabase y el pago es por QR de monto fijo, con comprobante que 
    descuento»; sin código, el normal.
 3. Paga escaneando el QR (o descargándolo, si está en el celular) y sube el comprobante.
 4. Al enviar, el servidor valida todo **antes** de subir el archivo, así no quedan comprobantes de
-   formularios rechazados. Con todo en orden firma una URL de subida (`/api/inscripcion/comprobante`), el
-   navegador sube el comprobante directo a Supabase Storage y el servidor guarda la inscripción
-   (`/api/inscripcion`).
+   formularios rechazados. Con todo en orden, el navegador achica la foto (2000 px, WebP al 82 %: una
+   foto de 13,8 MB quedó en 122 KB en la prueba), la manda a `/api/inscripcion/comprobante`, que la sube
+   al bucket privado de Google Cloud Storage, y el servidor guarda la inscripción (`/api/inscripcion`).
 5. La inscripción queda con `payment_status = 'pendiente'` hasta que alguien revise el comprobante.
 
 Lo que decide el servidor y no el navegador: el precio, la categoría (`5K ( FEMENINO )`, sale de distancia
@@ -69,7 +70,8 @@ el mismo contenido.
 
 1. **Base de datos.** Correr una vez `supabase/migrations/20260928000000_registrations.sql` en Supabase >
    SQL Editor. Crea la tabla `registrations` con RLS activado y sin políticas (la llave pública no puede
-   leer ni escribir) y el bucket privado `comprobantes` (5 MB, JPG/PNG/WEBP/PDF).
+   leer ni escribir) y un bucket `comprobantes` en Supabase Storage que ya **no se usa**: los comprobantes van a Google Cloud
+   Storage (ver abajo).
 2. **Variables** (local en `.env.local`, en Vercel en Settings > Environment Variables):
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY`. La secreta
    salta RLS y lee todas las inscripciones: solo servidor, nunca con `NEXT_PUBLIC_`.
@@ -82,7 +84,7 @@ Cada inscripción guardada se copia como una fila en una hoja de Google Sheets, 
 al corredor (`after()` de Next): el corredor no espera a Google, y si Google falla la inscripción ya está
 en Supabase, que es la fuente de verdad. El error queda en el log con el id de la inscripción.
 
-- Los encabezados siguen la planilla de cronometraje, más código, precio, total y ruta del comprobante. Si
+- Los encabezados siguen la planilla de cronometraje, más código, precio, total y **enlace al comprobante**. Si
   la pestaña está vacía, se escriben solos la primera vez.
 - Se escribe en modo `RAW`: nada de lo que escriba un corredor se interpreta como fórmula.
 - Autenticación con una cuenta de servicio (librería oficial `google-auth-library`). La hoja tiene que
@@ -93,10 +95,27 @@ en Supabase, que es la fuente de verdad. El error queda en el log con el id de l
 - El estado del pago en la hoja es el del momento de inscribirse (`pendiente`); el que vale es el de
   Supabase.
 
+## Comprobantes en Google Cloud Storage
+
+- Bucket `corre-y-liberate-comprobantes` del proyecto `corre-y-liberate`, en `us-central1` (dentro de la
+  capa gratuita de 5 GB), con **prevención de acceso público** y control uniforme.
+- La cuenta de servicio de la hoja tiene ahí solo **Creador** y **Visualizador de objetos**: sube y revisa
+  que el archivo exista, pero no puede borrar ni reemplazar un comprobante.
+- El enlace de la hoja (`https://storage.cloud.google.com/...`) pide iniciar sesión con Google y muestra la
+  foto solo a cuentas con permiso de lectura en el bucket. Hoy: las dueñas del proyecto (Integral Fit). Para
+  dar acceso a otra persona: bucket > Permisos > Otorgar acceso > su correo con el rol **Visualizador de
+  objetos de Storage**.
+- El archivo pasa por una función de Vercel, que acepta hasta 4,5 MB: por eso la foto se comprime en el
+  navegador y el servidor rechaza lo que pase de 4 MB (un PDF grande).
+- Variable: `GCS_RECEIPTS_BUCKET`, más las `GOOGLE_SERVICE_ACCOUNT_*` de la hoja.
+- **La cuenta de facturación de Google Cloud es de prueba y termina el 29 de diciembre de 2026.** Al terminar,
+  Google detiene los recursos (el bucket incluido) salvo que se pase a una cuenta pagada. Antes de esa fecha
+  hay que actualizarla o descargar los comprobantes.
+
 ## Revisar pagos
 
 Hoy desde Supabase > Table Editor > `registrations`: filtrar `payment_status = pendiente`, abrir el
-comprobante en Storage > `comprobantes` con la ruta de `receipt_path`, y cambiar el estado a `aprobado` o
+comprobante desde el enlace de la hoja (o en el bucket con la ruta de `receipt_path`), y cambiar el estado a `aprobado` o
 `rechazado`. **Comparar el monto del comprobante con `total`**: una inscripción sin código tiene que
 haber pagado el precio lleno, aunque alguien le haya pasado el QR con descuento. `bib_number` es para el número de dorsal.
 
