@@ -76,6 +76,23 @@ el mismo contenido.
 
 Sin esas variables `/inscripcion` responde 404 y el resto del sitio funciona igual.
 
+## Copia a Google Drive
+
+Cada inscripción guardada se copia como una fila en una hoja de Google Sheets, **después** de responderle
+al corredor (`after()` de Next): el corredor no espera a Google, y si Google falla la inscripción ya está
+en Supabase, que es la fuente de verdad. El error queda en el log con el id de la inscripción.
+
+- Los encabezados siguen la planilla de cronometraje, más código, precio, total y ruta del comprobante. Si
+  la pestaña está vacía, se escriben solos la primera vez.
+- Se escribe en modo `RAW`: nada de lo que escriba un corredor se interpreta como fórmula.
+- Autenticación con una cuenta de servicio (librería oficial `google-auth-library`). La hoja tiene que
+  estar compartida con el correo de esa cuenta como **Editor**.
+- Variables: `GOOGLE_SHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
+  `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` y `GOOGLE_SHEETS_TAB` (por defecto `Inscripciones`).
+- **La hoja tiene datos de salud y cédulas**: compartirla solo con quien organiza.
+- El estado del pago en la hoja es el del momento de inscribirse (`pendiente`); el que vale es el de
+  Supabase.
+
 ## Revisar pagos
 
 Hoy desde Supabase > Table Editor > `registrations`: filtrar `payment_status = pendiente`, abrir el
@@ -85,7 +102,6 @@ haber pagado el precio lleno, aunque alguien le haya pasado el QR con descuento.
 
 ## Pendiente
 
-- Sincronizar cada inscripción a una hoja de Google Drive (paso 2).
 - Enlazar los botones «Inscríbete» de la página principal a `/inscripcion` cuando se decida dejar de usar
   cronometraje.
 - Tallas infantiles para el 3K, si la organización las va a tener.

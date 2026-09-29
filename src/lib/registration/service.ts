@@ -6,6 +6,7 @@ import { priceRegistration, type PriceResult } from '@/domain/registration/prici
 import { categoryFor, cedulaSchema, registrationSchema } from '@/domain/registration/schema';
 import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import type { SheetRegistration } from '@/lib/sheets/registration-row';
 import { RECEIPTS_BUCKET, type SupabaseConfig } from '@/lib/supabase/config';
 
 import type { RegistrationErrorReason } from '@/content';
@@ -78,7 +79,7 @@ async function cedulaTaken(config: SupabaseConfig, cedula: string): Promise<bool
 }
 
 export type SubmitResult =
-  | { ok: true; id: string; total: number; category: string }
+  | { ok: true; id: string; total: number; category: string; record: SheetRegistration }
   | { ok: false; reason: RegistrationErrorReason; fields?: Record<string, string> };
 
 /**
@@ -166,7 +167,7 @@ export async function submitRegistration(
       total: price.total,
       receipt_path: data.receiptPath,
     })
-    .select('id')
+    .select('id, created_at')
     .single();
 
   if (error) {
@@ -182,5 +183,34 @@ export async function submitRegistration(
     return { ok: false, reason: 'unavailable' };
   }
 
-  return { ok: true, id: row.id as string, total: price.total, category };
+  const record: SheetRegistration = {
+    id: row.id as string,
+    createdAt: row.created_at as string,
+    paymentStatus: 'pendiente',
+    distanceLabel,
+    gender: data.gender,
+    category,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    city: data.city,
+    shirtSize: data.shirtSize,
+    birthDate: data.birthDate,
+    cedula: data.cedula,
+    phone: data.phone,
+    eps: data.eps,
+    bloodType: data.bloodType,
+    team: data.team,
+    emergencyName: data.emergencyName,
+    emergencyPhone: data.emergencyPhone,
+    recentCompetition: data.recentCompetition,
+    hasIllness: data.hasIllness,
+    medicalCondition: data.medicalCondition,
+    referralCode: price.code,
+    basePrice: price.basePrice,
+    total: price.total,
+    receiptPath: data.receiptPath,
+    observation: data.observation,
+  };
+  return { ok: true, id: record.id, total: price.total, category, record };
 }
