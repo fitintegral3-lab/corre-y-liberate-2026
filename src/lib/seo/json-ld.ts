@@ -61,7 +61,8 @@ export function buildEventJsonLd(now: Date = new Date()) {
           name: `${distance.fullLabel} · ${phase.name}`,
           price: priceFor(phase, distance.id),
           priceCurrency: 'COP',
-          url: siteConfig.links.registration,
+          // Schema.org pide URL absoluta y el enlace de inscripcion es una ruta.
+          url: new URL(siteConfig.links.registration, siteConfig.url).toString(),
           availability: 'https://schema.org/InStock',
           validFrom: phase.startsOn,
           validThrough: phase.endsOn,

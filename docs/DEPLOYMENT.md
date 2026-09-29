@@ -25,6 +25,33 @@ formato inválido, el build falla ahí con el nombre y el motivo.
 En Vercel se configuran una vez por entorno (Production / Preview /
 Development). Localmente, `cp .env.example .env.local`.
 
+Además, la inscripción usa estas variables. Todas son **solo servidor**: ninguna
+lleva `NEXT_PUBLIC_`, y las marcadas como secretas van con la opción
+**Sensitive** de Vercel. Sin las de Supabase o sin el bucket, `/inscripcion`
+responde 404; sin las de la planilla o las de Gmail, la inscripción funciona
+igual y solo no se copia o no se envía el correo.
+
+| Variable                             | Secreta | Para qué                                         |
+| ------------------------------------ | ------- | ------------------------------------------------ |
+| `SUPABASE_URL`                       | No      | Proyecto de Supabase                             |
+| `SUPABASE_SECRET_KEY`                | Sí      | Leer y escribir inscripciones                    |
+| `GCS_RECEIPTS_BUCKET`                | No      | Bucket de comprobantes                           |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | No      | Cuenta de servicio (planilla y bucket)           |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Sí      | Llave de la cuenta de servicio                   |
+| `GOOGLE_SHEETS_SPREADSHEET_ID`       | No      | Planilla de inscripciones                        |
+| `GOOGLE_SHEETS_TAB`                  | No      | Pestaña (por defecto `Inscripciones`)            |
+| `GMAIL_USER`                         | No      | Cuenta que envía los correos                     |
+| `GMAIL_APP_PASSWORD`                 | Sí      | Contraseña de aplicación de esa cuenta           |
+| `EMAIL_FROM_NAME`                    | No      | Nombre del remitente                             |
+| `SUPABASE_WEBHOOK_SECRET`            | Sí      | Secreto del aviso de Supabase al cambiar el pago |
+| `ADMIN_SLUG`                         | Sí      | Dirección secreta de la administración           |
+| `ADMIN_USER`                         | No      | Usuario de la administración                     |
+| `ADMIN_PASSWORD`                     | Sí      | Contraseña de la administración                  |
+
+Qué es cada una y cómo se obtiene: [REGISTRATION.md](REGISTRATION.md) y
+`.env.example`. Las credenciales de administración se generan distintas para
+cada entorno.
+
 `NEXT_PUBLIC_SITE_URL` alimenta `metadataBase`, el `sitemap.xml`, el
 `robots.txt` y las URLs absolutas de Open Graph. Si queda mal, las vistas
 previas al compartir el enlace se rompen sin que nada avise.
@@ -65,7 +92,7 @@ se cachea nunca: un chequeo de salud cacheado no chequea nada.
 Además vale la pena mirar, después de cada release:
 
 - `https://correyliberate.com/robots.txt` — debe permitir `/` y apuntar al sitemap.
-- `https://correyliberate.com/sitemap.xml` — una URL, la raíz.
+- `https://correyliberate.com/sitemap.xml` — la raíz y `/inscripcion` (esta solo si la inscripción está configurada).
 - `https://correyliberate.com/opengraph-image` — la imagen de vista previa.
 - Pegar el enlace en un chat de WhatsApp y ver que aparezca la tarjeta.
 
@@ -78,7 +105,9 @@ vigente, que cambia por calendario. Sin revalidación, un cambio de fase
 necesitaría un redespliegue.
 
 Si hace falta que un cambio de contenido salga ya, el camino es desplegar: el
-contenido vive en el repositorio, no en una base de datos.
+contenido (precios, fechas, textos, códigos y QR) vive en el repositorio. Lo que
+vive en una base de datos son las inscripciones, y esas no dependen de la
+revalidación.
 
 ## Rollback
 

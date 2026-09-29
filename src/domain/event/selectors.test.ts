@@ -76,6 +76,7 @@ describe('findDistance', () => {
       kilometers: 5,
       startTime: '6:20 am',
       description: '5 kilómetros',
+      routeImage: '/rutas/5k.webp',
     },
   ];
 

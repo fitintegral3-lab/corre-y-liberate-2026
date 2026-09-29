@@ -1,6 +1,6 @@
 import { awardCardStyles } from '@/features/awards/theme';
 import { Container, CtaLink, DotPattern } from '@/components/ui';
-import { awards, awardsSection, distances } from '@/content';
+import { awards, awardsSection, distances, familyRunCard } from '@/content';
 import { siteConfig } from '@/config/site';
 import { awardTotals, findDistance } from '@/domain/event/selectors';
 import { cn } from '@/lib/utils/cn';
@@ -15,6 +15,38 @@ const backgroundImage = [
     ' rgba(30, 8, 2, 0.85) 100%)',
   "url('/backgrounds/bg_premiacion.webp')",
 ].join(', ');
+
+const cardClassName =
+  'flex flex-col justify-between rounded-3xl p-6 shadow-2xl backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_45px_rgba(0,0,0,0.5)] hover:ring-2 hover:ring-white/40 sm:p-8';
+
+function FamilyRunCard() {
+  const distance = findDistance(distances, familyRunCard.distanceId);
+  const style = awardCardStyles[familyRunCard.theme];
+
+  return (
+    <article
+      style={{ backgroundColor: style.background }}
+      className={cn(cardClassName, style.text)}
+    >
+      <div>
+        <div className={cn('border-b-2 pb-3 text-center', style.border)}>
+          <h3 className="font-athletic text-6xl sm:text-7xl">{distance.label}</h3>
+          <p className="mt-1 font-athletic-bold text-sm tracking-widest sm:text-base">
+            {familyRunCard.title}
+          </p>
+        </div>
+        <p className="my-6 text-sm leading-relaxed opacity-95 sm:text-base">
+          {familyRunCard.description}
+        </p>
+      </div>
+      <p
+        className={cn('border-t-2 pt-4 text-center font-athletic text-lg sm:text-xl', style.border)}
+      >
+        {familyRunCard.footer}
+      </p>
+    </article>
+  );
+}
 
 export function AwardsSection() {
   return (
@@ -44,10 +76,11 @@ export function AwardsSection() {
           </p>
         </div>
 
-        {/* Tres columnas recien en `lg`. En una tablet vertical (768 px) tres
-            tarjetas dejan unos 230 px cada una y los encabezados de la tabla
-            —PUESTO, MUJERES, HOMBRES— se pegan entre si sin espacio. */}
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 text-left md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        {/* Dos columnas y no cuatro: con cuatro tarjetas en una fila cada una
+            queda en unos 230 px y los encabezados de la tabla —PUESTO,
+            MUJERES, HOMBRES— se pegan entre si sin espacio. */}
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 text-left md:grid-cols-2 lg:gap-8">
+          <FamilyRunCard />
           {awards.map((award) => {
             const distance = findDistance(distances, award.distanceId);
             const style = awardCardStyles[award.theme];
@@ -57,10 +90,7 @@ export function AwardsSection() {
               <article
                 key={award.distanceId}
                 style={{ backgroundColor: style.background }}
-                className={cn(
-                  'flex flex-col justify-between rounded-3xl p-6 shadow-2xl backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_45px_rgba(0,0,0,0.5)] hover:ring-2 hover:ring-white/40 sm:p-8',
-                  style.text,
-                )}
+                className={cn(cardClassName, style.text)}
               >
                 <div>
                   <div className={cn('border-b-2 pb-3 text-center', style.border)}>

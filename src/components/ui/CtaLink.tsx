@@ -5,10 +5,11 @@ import { cn } from '@/lib/utils/cn';
 import type { ReactNode } from 'react';
 
 /**
- * Llamado a la accion hacia la plataforma de inscripciones.
+ * Llamado a la accion hacia la inscripcion.
  *
  * Es el boton que se repite en las seis secciones. Lo compartido —tipografia,
- * la flecha que se desplaza al pasar el mouse, el escalado, `rel="noopener"`—
+ * la flecha que se desplaza al pasar el mouse, el escalado, abrir en otra
+ * pestania solo los enlaces a otro sitio—
  * vive aca; el color y la sombra de cada seccion entran por `variant` y
  * `className`, porque son decisiones del diseno de esa seccion y no del boton.
  */
@@ -34,6 +35,8 @@ export interface CtaLinkProps {
   className?: string;
 }
 
+const isExternal = (href: string) => /^https?:\/\//.test(href);
+
 export function CtaLink({
   href,
   children,
@@ -46,8 +49,7 @@ export function CtaLink({
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      {...(isExternal(href) && { target: '_blank', rel: 'noopener noreferrer' })}
       className={cn(
         'group inline-flex cursor-pointer items-center rounded-full font-athletic-bold tracking-wider transition-all duration-300 hover:scale-[1.08] active:scale-95',
         variantClasses[variant],

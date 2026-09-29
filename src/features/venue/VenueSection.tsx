@@ -2,6 +2,7 @@ import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 
 import { Container, CtaLink } from '@/components/ui';
+import { RouteButton } from '@/features/routes/RouteButton';
 import { distances, event, fullTagline, venue, venueFullAddress, venueSection } from '@/content';
 import { formatDayAndShortMonth, formatWeekday, formatWeekdayLongDate } from '@/lib/format';
 
@@ -97,7 +98,7 @@ export function VenueSection() {
               <span className="mb-3 block font-athletic-semibold text-xs tracking-wider text-brand-orange">
                 {venueSection.scheduleLabel}
               </span>
-              <dl className="grid grid-cols-4 gap-2 text-center">
+              <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
                 {distances.map((distance) => (
                   <div
                     key={distance.id}
@@ -106,6 +107,9 @@ export function VenueSection() {
                     <dt className="block font-athletic text-3xl text-white">{distance.label}</dt>
                     <dd className="text-[11px] font-semibold text-neutral-300">
                       {distance.startTime}
+                    </dd>
+                    <dd className="mt-2">
+                      <RouteButton label={distance.label} routeImage={distance.routeImage} />
                     </dd>
                   </div>
                 ))}
