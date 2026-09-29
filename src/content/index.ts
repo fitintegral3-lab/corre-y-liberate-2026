@@ -4,7 +4,7 @@
  * Los componentes importan desde `@/content` y no desde cada archivo: asi
  * reorganizar esta carpeta no toca ninguna seccion.
  */
-export { awards, awardsSection } from '@/content/awards';
+export { awards, awardsSection, familyRunCard } from '@/content/awards';
 export { runningClubs, runningClubsSection } from '@/content/clubs';
 export { distances } from '@/content/distances';
 export {
