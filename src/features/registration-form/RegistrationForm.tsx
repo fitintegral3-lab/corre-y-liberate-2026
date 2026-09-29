@@ -1,8 +1,7 @@
 'use client';
 
 import { createClient } from '@supabase/supabase-js';
-import { CheckCircle2, Download } from 'lucide-react';
-import Image from 'next/image';
+import { CheckCircle2 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 
 import {
@@ -13,6 +12,8 @@ import {
 } from '@/content';
 import { BLOOD_TYPES, SHIRT_SIZES } from '@/domain/registration/schema';
 import { formatCop } from '@/lib/format';
+
+import { QrPayment } from './QrPayment';
 
 export interface DistanceOption {
   id: string;
@@ -475,52 +476,14 @@ export function RegistrationForm({
             </div>
 
             {quote && quote.distanceId === distanceId && (
-              <div className="grid items-center gap-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5 sm:grid-cols-[auto_1fr]">
-                <div className="mx-auto rounded-xl bg-white p-3 shadow-sm">
-                  <Image
-                    src={quote.qrImage}
-                    alt={`QR de pago por ${formatCop(quote.total)}`}
-                    width={220}
-                    height={220}
-                    unoptimized
-                  />
-                </div>
-                <div className="space-y-2 text-sm">
-                  <p className="font-athletic-bold text-xs tracking-widest text-brand-orange">
-                    ESCANEA Y PAGA
-                  </p>
-                  {quote.discount > 0 && (
-                    <p className="text-neutral-500">
-                      <span className="line-through">{formatCop(quote.basePrice)}</span>{' '}
-                      <span className="font-semibold text-green-700">
-                        −{formatCop(quote.discount)} con {quote.code}
-                      </span>
-                    </p>
-                  )}
-                  <p className="font-athletic text-4xl text-neutral-950">
-                    {formatCop(quote.total)}
-                  </p>
-                  <p className="text-neutral-600">
-                    Escanea el QR desde la app de tu banco o Nequi. El valor ya viene cargado: paga
-                    exactamente ese monto y guarda el comprobante.
-                  </p>
-                  {/* Quien se inscribe desde el celular no puede escanear la
-                      pantalla que esta mirando: descarga la imagen y la carga
-                      en su app. */}
-                  <a
-                    href={quote.qrImage}
-                    download={`qr-corre-y-liberate-${quote.distanceId}.jpeg`}
-                    className="inline-flex items-center gap-2 rounded-full border-2 border-neutral-900 px-4 py-2 font-athletic-bold text-xs tracking-wider text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
-                  >
-                    <Download className="h-4 w-4" aria-hidden="true" />
-                    DESCARGAR QR
-                  </a>
-                  <p className="text-xs text-neutral-500">
-                    ¿Pagas desde este mismo celular? Descarga el QR y cárgalo desde la galería en tu
-                    app.
-                  </p>
-                </div>
-              </div>
+              <QrPayment
+                qrImage={quote.qrImage}
+                distanceId={quote.distanceId}
+                total={quote.total}
+                basePrice={quote.basePrice}
+                discount={quote.discount}
+                code={quote.code}
+              />
             )}
 
             <Field

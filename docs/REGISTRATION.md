@@ -32,7 +32,9 @@ y género), que la cédula no esté repetida en la edición y que el comprobante
 
 ## Códigos y QR
 
-`src/content/registration-payment.ts`. Todos los códigos dan el mismo descuento: el del QR «con descuento».
+`src/lib/registration/payment-config.ts` (solo servidor, ver «Seguridad»). Todos los códigos dan el mismo
+descuento: el del QR «con descuento». El pago es por QR Bre-B: el corredor lo escanea desde la app de su
+banco o billetera, o lo amplía en un modal para tomarle captura.
 
 | Distancia | QR normal | QR con descuento |
 | --------- | --------- | ---------------- |
@@ -42,9 +44,26 @@ y género), que la cédula no esté repetida en la edición y que el comprobante
 | 10K       | $160.000  | $144.000         |
 
 Los montos salen de decodificar cada QR (campo 54 del formato EMVCo). **Solo hay QR para la preventa 2**
-(hasta el 31 de octubre). Para la preventa 3 hay que agregar sus QR en `public/qr/` y en ese archivo;
+(hasta el 31 de octubre). Para la preventa 3 hay que agregar sus QR (normales en `public/qr/`, con descuento en
+`src/lib/registration/qr-descuento/`) y registrarlos en ese archivo;
 sin ellos el formulario muestra «Todavía no hay QR de pago para esta preventa» y no cobra. Una prueba
 compara el monto del QR normal con el precio de `pricing.ts`.
+
+Los QR se guardan como WebP sin pérdida en blanco y negro (~1,8 KB cada uno, contra ~37 KB del JPEG
+original). Antes de reemplazar uno se decodifica y se compara con el original: tiene que dar exactamente
+el mismo contenido.
+
+## Seguridad
+
+- **Los códigos no llegan al navegador.** Viven en `src/lib/registration/payment-config.ts`, que solo
+  importa el servidor. Estuvieron en `src/content/` y el build los metía en el JavaScript público; para
+  que no vuelva a pasar, `npm run check:bundle` (corre en CI después del build) falla si alguno aparece
+  en `.next/static`.
+- **Los QR con descuento no están en `public/`.** Next los publica con un hash del contenido en el nombre
+  y el servidor solo entrega esa dirección a quien escribió un código válido.
+- **Lo que no se puede evitar:** un código es un nombre (`VALECORRE`) y se puede adivinar probando en
+  `/api/inscripcion/precio`, y quien recibe un QR con descuento puede reenviarlo. El control real es la
+  revisión del pago (abajo).
 
 ## Puesta en marcha
 
@@ -61,7 +80,8 @@ Sin esas variables `/inscripcion` responde 404 y el resto del sitio funciona igu
 
 Hoy desde Supabase > Table Editor > `registrations`: filtrar `payment_status = pendiente`, abrir el
 comprobante en Storage > `comprobantes` con la ruta de `receipt_path`, y cambiar el estado a `aprobado` o
-`rechazado`. `bib_number` es para el número de dorsal.
+`rechazado`. **Comparar el monto del comprobante con `total`**: una inscripción sin código tiene que
+haber pagado el precio lleno, aunque alguien le haya pasado el QR con descuento. `bib_number` es para el número de dorsal.
 
 ## Pendiente
 

@@ -62,11 +62,16 @@ export default function InscripcionPage() {
           </p>
         ) : (
           <RegistrationForm
-            distances={distances.map((distance) => ({
-              id: distance.id,
-              label: distance.label,
-              description: distance.description,
-            }))}
+            // Aca van por kilometros (3K, 5K, 7K, 10K): en un selector el
+            // 3K al final se lee raro. El resto del sitio respeta el orden
+            // editorial de `distances.ts`.
+            distances={[...distances]
+              .sort((a, b) => a.kilometers - b.kilometers)
+              .map((distance) => ({
+                id: distance.id,
+                label: distance.label,
+                description: distance.description,
+              }))}
             supabaseUrl={config.url}
             supabasePublishableKey={config.publishableKey}
           />

@@ -15,7 +15,7 @@ export const registrationFormCopy = {
     race: 'Tu carrera',
     personal: 'Tus datos',
     health: 'Salud y emergencia',
-    payment: 'Pago',
+    payment: 'Pago por QR Bre-B',
     terms: 'Reglamento',
   },
   submit: 'ENVIAR INSCRIPCIÓN',
