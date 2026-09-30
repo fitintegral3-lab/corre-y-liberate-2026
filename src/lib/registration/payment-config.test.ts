@@ -54,6 +54,7 @@ describe('pago por QR', () => {
       'PABLOBOTINA',
       'JDMORALES',
       'COLCRECER',
+      'INTEGRALFIT',
     ])
       expect(quote('5k', code.toLowerCase(), duringPresale2), code).toMatchObject({
         ok: true,
