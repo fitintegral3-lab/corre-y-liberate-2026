@@ -31,6 +31,12 @@ export const runningClubs = z
       instagram: 'https://www.instagram.com/byrunners3/',
     },
     {
+      id: 'neo-team-running',
+      name: 'Neo Team Running',
+      logo: '/clubs/neo_team_running.webp',
+      instagram: 'https://www.instagram.com/neoteam_cali/?hl=es-la',
+    },
+    {
       id: 'cartel-running-club',
       name: 'El Cartel Running Club',
       logo: '/sponsors/cartel_running_club.webp',
