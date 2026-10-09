@@ -68,6 +68,13 @@ export const sponsors = z
       tier: 'oficial',
     },
     {
+      id: 'czar',
+      name: 'CZAR',
+      logo: '/sponsors/czar.webp',
+      tier: 'oficial',
+      instagram: 'https://www.instagram.com/czarsport/',
+    },
+    {
       id: 'cartel-running-club',
       name: 'El Cartel Running Club',
       logo: '/sponsors/cartel_running_club.webp',
