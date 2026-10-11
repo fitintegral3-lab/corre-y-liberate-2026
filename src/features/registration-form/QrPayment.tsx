@@ -46,9 +46,16 @@ export function QrPayment({
 
   return (
     <div className="grid items-center gap-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5 sm:grid-cols-[auto_1fr]">
-      <button
-        type="button"
-        onClick={() => dialogRef.current?.showModal()}
+      <a
+        href={qrImage}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(event) => {
+          if (typeof dialogRef.current?.showModal === 'function') {
+            event.preventDefault();
+            dialogRef.current.showModal();
+          }
+        }}
         aria-haspopup="dialog"
         className="group relative mx-auto cursor-zoom-in rounded-xl bg-white p-3 shadow-sm"
       >
@@ -57,7 +64,7 @@ export function QrPayment({
           <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
           Toca para ampliar
         </span>
-      </button>
+      </a>
 
       <div className="space-y-2 text-sm">
         <p className="font-athletic-bold text-xs tracking-widest text-brand-orange">
