@@ -13,7 +13,10 @@ import { BLOOD_TYPES, SHIRT_SIZES } from '@/domain/registration/schema';
 import { RouteButton } from '@/features/routes/RouteButton';
 import { formatCop } from '@/lib/format';
 
+import { birthDateFromParts } from './birth-date';
+import { BirthDateFields } from './BirthDateFields';
 import { compressReceipt } from './compress-receipt';
+import styles from './RegistrationForm.module.css';
 import { QrPayment } from './QrPayment';
 
 export interface DistanceOption {
@@ -40,7 +43,7 @@ const inputClass =
   'w-full rounded-xl border-2 border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-900 placeholder:text-neutral-400 focus:border-brand-orange focus:outline-none aria-invalid:border-red-500';
 const labelClass = 'block text-sm font-semibold text-neutral-800';
 const choiceClass =
-  'flex cursor-pointer items-center justify-center rounded-xl border-2 border-neutral-200 px-3 py-3 text-sm font-semibold text-neutral-700 transition-colors has-checked:border-brand-orange has-checked:bg-orange-50 has-checked:text-neutral-950 has-focus-visible:outline-3';
+  'flex cursor-pointer items-center justify-center rounded-xl border-2 border-neutral-200 px-3 py-3 text-sm font-semibold text-neutral-700 transition-colors';
 
 function isReason(value: unknown): value is RegistrationErrorReason {
   return typeof value === 'string' && value in registrationErrors;
@@ -109,7 +112,11 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
   async function uploadReceipt(file: File): Promise<string> {
     if (uploaded?.file === file) return uploaded.path;
     const form = new FormData();
-    form.append('file', await compressReceipt(file));
+    const compressed = await compressReceipt(file);
+    const extension = compressed.type === 'image/webp' ? 'webp' : 'jpg';
+    const filename =
+      compressed === file ? file.name : `${file.name.replace(/\.[^.]+$/, '')}.${extension}`;
+    form.append('file', compressed, filename);
     const response = await fetch('/api/inscripcion/comprobante', { method: 'POST', body: form });
     const body = (await response.json().catch(() => ({ ok: false, reason: 'receipt-invalid' }))) as
       { ok: true; path: string } | { ok: false; reason: string };
@@ -143,7 +150,11 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
       city: form.get('city'),
       gender: form.get('gender'),
       distanceId: form.get('distanceId'),
-      birthDate: form.get('birthDate'),
+      birthDate: birthDateFromParts(
+        String(form.get('birthDay') ?? ''),
+        String(form.get('birthMonth') ?? ''),
+        String(form.get('birthYear') ?? ''),
+      ),
       shirtSize: form.get('shirtSize'),
       cedula: form.get('cedula'),
       phone: form.get('phone'),
@@ -211,7 +222,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
   const error = (name: string) => fieldErrors[name];
 
   return (
-    <form onSubmit={onSubmit} noValidate className="mx-auto max-w-3xl space-y-8">
+    <form onSubmit={onSubmit} noValidate className={`${styles.form} mx-auto max-w-3xl space-y-8`}>
       <Section title={registrationFormCopy.sections.race}>
         <Field label="Carrera *" error={error('distanceId')} as="fieldset">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -226,7 +237,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
                     value={distance.id}
                     checked={distanceId === distance.id}
                     onChange={() => chooseDistance(distance.id)}
-                    className="sr-only"
+                    className={styles.radio}
                   />
                   <span className="font-athletic text-3xl leading-none text-neutral-950">
                     {distance.label}
@@ -243,11 +254,11 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
         <Field label="Género *" error={error('gender')} as="fieldset">
           <div className="grid grid-cols-2 gap-3">
             <label className={choiceClass}>
-              <input type="radio" name="gender" value="femenino" className="sr-only" />
+              <input type="radio" name="gender" value="femenino" className={styles.radio} />
               Femenino
             </label>
             <label className={choiceClass}>
-              <input type="radio" name="gender" value="masculino" className="sr-only" />
+              <input type="radio" name="gender" value="masculino" className={styles.radio} />
               Masculino
             </label>
           </div>
@@ -331,16 +342,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
               aria-invalid={Boolean(error('cedula'))}
             />
           </Field>
-          <Field label="Fecha de nacimiento *" error={error('birthDate')} htmlFor="birthDate">
-            <input
-              id="birthDate"
-              name="birthDate"
-              type="date"
-              className={inputClass}
-              autoComplete="bday"
-              aria-invalid={Boolean(error('birthDate'))}
-            />
-          </Field>
+          <BirthDateFields error={error('birthDate')} />
           <Field label="Ciudad" error={error('city')} htmlFor="city">
             <input id="city" name="city" className={inputClass} autoComplete="address-level2" />
           </Field>
@@ -603,7 +605,7 @@ function YesNo({
               name={name}
               value={value}
               onChange={() => onChange?.(value)}
-              className="sr-only"
+              className={styles.radio}
             />
             {value === 'SI' ? 'Sí' : 'No'}
           </label>

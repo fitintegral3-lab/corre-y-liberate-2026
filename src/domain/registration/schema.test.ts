@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { categoryFor, registrationSchema } from '@/domain/registration/schema';
 
@@ -83,6 +83,20 @@ describe('registrationSchema', () => {
 
   it('rechaza una fecha de nacimiento futura', () => {
     expect(errorsOf({ ...valid, birthDate: '2999-01-01' })).toHaveProperty('birthDate');
+  });
+
+  it('usa el día de Colombia para rechazar nacimientos futuros durante la noche', () => {
+    // El reloj se fija en el límite donde UTC ya cambió de día y Colombia no.
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-10-12T04:59:59Z'));
+      expect(errorsOf({ ...valid, birthDate: '2026-10-11' })).not.toHaveProperty('birthDate');
+      expect(errorsOf({ ...valid, birthDate: '2026-10-12' })).toHaveProperty('birthDate');
+      vi.setSystemTime(new Date('2026-10-12T05:00:00Z'));
+      expect(errorsOf({ ...valid, birthDate: '2026-10-12' })).not.toHaveProperty('birthDate');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('solo acepta comprobantes en la carpeta de pendientes, con nombre generado', () => {
