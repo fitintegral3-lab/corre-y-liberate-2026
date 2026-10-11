@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { distanceIdSchema } from '@/domain/event/schema';
+import { toEventIsoDate } from '@/lib/format/date';
 
 /**
  * Formulario de inscripcion.
@@ -80,7 +81,7 @@ export const registrationSchema = z
     distanceId: distanceIdSchema,
     birthDate: z.iso
       .date('Escribe la fecha de nacimiento')
-      .refine((value) => value >= '1920-01-01' && value <= new Date().toISOString().slice(0, 10), {
+      .refine((value) => value >= '1920-01-01' && value <= toEventIsoDate(new Date()), {
         message: 'Revisa la fecha de nacimiento',
       }),
     shirtSize: z.enum(SHIRT_SIZES, { error: 'Elige la talla de camiseta' }),
