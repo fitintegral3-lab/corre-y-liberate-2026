@@ -48,13 +48,6 @@ export const sponsors = z
       instagram: 'https://www.instagram.com/electrolife.colombia/',
     },
     {
-      id: 'ces',
-      name: 'CES Fundación Educativa',
-      logo: '/sponsors/ces.webp',
-      tier: 'oficial',
-      instagram: 'https://www.instagram.com/educacionces/',
-    },
-    {
       id: 'cereales-jj',
       name: 'Cereales JJ',
       logo: '/sponsors/cereales_jj.webp',
@@ -73,6 +66,32 @@ export const sponsors = z
       logo: '/sponsors/czar.webp',
       tier: 'oficial',
       instagram: 'https://www.instagram.com/czarsport/',
+    },
+    {
+      id: 'fundacion-grupo-corazones-amigos',
+      name: 'Fundación Grupo Corazones Amigos',
+      logo: '/sponsors/fundacion_grupo_corazones_amigos.webp',
+      tier: 'oficial',
+    },
+    {
+      id: 'servimed-san-antonio',
+      name: 'Servimed San Antonio S.A.S.',
+      logo: '/sponsors/servimed_san_antonio.webp',
+      tier: 'oficial',
+    },
+    {
+      id: 'constructora-solanillas',
+      name: 'Constructora Solanillas',
+      logo: '/sponsors/constructora_solanillas.webp',
+      tier: 'oficial',
+      instagram: 'https://www.instagram.com/constructora_solanillas/',
+    },
+    {
+      id: 'banco-w',
+      name: 'Banco W',
+      logo: '/sponsors/banco_w.webp',
+      tier: 'oficial',
+      instagram: 'https://www.instagram.com/bancow.com.co/',
     },
     {
       id: 'cartel-running-club',
