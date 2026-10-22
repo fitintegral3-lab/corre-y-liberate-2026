@@ -34,7 +34,7 @@ export const presalePhases = z
       name: 'PREVENTAS 3',
       tagline: 'Última oportunidad',
       startsOn: '2026-11-01',
-      endsOn: '2026-11-21',
+      endsOn: '2026-11-15',
       prices: { '5k': 140_000, '7k': 160_000, '10k': 180_000, '3k-infantil': 90_000 },
     },
   ]);
