@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { priceRegistration } from '@/domain/registration/pricing';
 
-import type { PresalePhase } from '@/domain/event/schema';
+import type { DistanceId, PresalePhase } from '@/domain/event/schema';
 import type { DiscountCode, PhaseQrs } from '@/domain/registration/payment';
 
 const phases: PresalePhase[] = [
@@ -34,10 +34,16 @@ const qrsByPhase: Record<string, PhaseQrs> = {
   },
 };
 const codes: DiscountCode[] = [{ code: 'VALECORRE', owner: 'Vale' }];
+const distances = [
+  { id: '3k-infantil', soldOut: false },
+  { id: '5k', soldOut: false },
+  { id: '7k', soldOut: true },
+  { id: '10k', soldOut: false },
+] as const;
 
 const inPhase2 = new Date('2026-10-15T15:00:00Z');
-const price = (distanceId: '3k-infantil' | '5k' | '10k', code: string | null, now = inPhase2) =>
-  priceRegistration({ distanceId, code, phases, codes, qrsByPhase, now });
+const price = (distanceId: DistanceId, code: string | null, now = inPhase2) =>
+  priceRegistration({ distanceId, code, distances, phases, codes, qrsByPhase, now });
 
 describe('priceRegistration', () => {
   it('sin codigo cobra el QR normal de la preventa vigente', () => {
@@ -76,6 +82,11 @@ describe('priceRegistration', () => {
       ok: false,
       reason: 'no-payment-qr',
     });
+  });
+
+  it('una distancia agotada no se cobra aunque tenga precio y QR vigentes', () => {
+    expect(price('7k', null)).toEqual({ ok: false, reason: 'sold-out' });
+    expect(price('7k', 'VALECORRE')).toEqual({ ok: false, reason: 'sold-out' });
   });
 
   it('con las inscripciones cerradas no cobra', () => {

@@ -39,7 +39,7 @@ cada tarjeta de premiación se calcula solo: no puede contradecir a sus filas.
 
 **Las fechas son `YYYY-MM-DD`.** El texto «1 de agosto al 15 de septiembre de
 2026» se deriva de `startsOn` y `endsOn`. Si las dos caen en el mismo mes, el
-sitio escribe «1 al 21 de noviembre de 2026» sin que nadie lo indique.
+sitio escribe «1 al 15 de noviembre de 2026» sin que nadie lo indique.
 
 **Las distancias tienen un id estable.** `'5k'`, `'7k'`, `'10k'`,
 `'3k-infantil'`. Ese id une los horarios, los premios y los precios.

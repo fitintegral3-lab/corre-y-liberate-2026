@@ -63,7 +63,9 @@ export function buildEventJsonLd(now: Date = new Date()) {
           priceCurrency: 'COP',
           // Schema.org pide URL absoluta y el enlace de inscripcion es una ruta.
           url: new URL(siteConfig.links.registration, siteConfig.url).toString(),
-          availability: 'https://schema.org/InStock',
+          availability: distance.soldOut
+            ? 'https://schema.org/SoldOut'
+            : 'https://schema.org/InStock',
           validFrom: phase.startsOn,
           validThrough: phase.endsOn,
         }))

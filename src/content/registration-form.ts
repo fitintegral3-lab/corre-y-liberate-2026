@@ -19,6 +19,7 @@ export const registrationFormCopy = {
     terms: 'Reglamento',
   },
   submit: 'ENVIAR INSCRIPCIÓN',
+  soldOut: 'Cupos agotados',
   success: {
     title: '¡INSCRIPCIÓN RECIBIDA!',
     body: 'Revisamos tu comprobante y te confirmamos por correo. Si algo no cuadra, te escribimos al celular que dejaste.',
@@ -34,6 +35,7 @@ export const terms = {
 /** Mensajes por motivo de rechazo del servidor. Un motivo nuevo sin texto no compila. */
 export const registrationErrors = {
   'registration-closed': 'Las inscripciones están cerradas.',
+  'sold-out': 'Los cupos de esta distancia están agotados. Elige otra.',
   'unknown-code': 'Ese código de descuento no existe. Revísalo o inscríbete sin código.',
   'no-payment-qr': 'Todavía no hay QR de pago para esta preventa. Escríbenos por WhatsApp.',
   'duplicate-cedula':

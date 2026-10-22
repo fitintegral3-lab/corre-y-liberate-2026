@@ -61,6 +61,12 @@ export const distanceSchema = z.object({
   description: z.string().min(1),
   /** Afiche con el mapa del recorrido, que se abre desde los horarios de salida. */
   routeImage: assetPathSchema,
+  /**
+   * Cupos vendidos: la distancia se sigue mostrando —quien ya pago la corre—,
+   * pero no se puede elegir ni cobrar. Se apaga con `true` en vez de borrarla
+   * del arreglo, porque el id une horarios, premios e inscripciones guardadas.
+   */
+  soldOut: z.boolean().default(false),
 });
 
 // ---------------------------------------------------------------------------

@@ -53,8 +53,13 @@ export function PricingSection() {
               <div className="divide-y divide-white/15">
                 {distances.map((distance) => (
                   <div key={distance.id} className="py-4">
-                    <strong className="block font-athletic text-4xl leading-none text-white">
+                    <strong className="flex items-center gap-2 font-athletic text-4xl leading-none text-white">
                       {distance.fullLabel}
+                      {distance.soldOut && (
+                        <span className="rounded-full bg-brand-orange px-2 py-1 font-athletic-bold text-[11px] tracking-wider">
+                          {pricingSection.soldOutLabel}
+                        </span>
+                      )}
                     </strong>
                     <span className="mt-1 block text-xs font-medium text-neutral-300">
                       {distance.description}
@@ -97,9 +102,18 @@ export function PricingSection() {
                       <span className="mb-1 block font-athletic-bold text-sm tracking-wider text-white/70 lg:mb-0 lg:sr-only">
                         {distance.fullLabel}
                       </span>
-                      <span className="block font-athletic text-4xl leading-none text-white sm:text-5xl">
-                        {formatCop(priceFor(phase, distance.id))}
-                      </span>
+                      {/* Agotada se ve en cada fase y no solo en la vigente: un
+                          precio de una fase futura sugiere que va a volver a
+                          haber cupos. */}
+                      {distance.soldOut ? (
+                        <span className="block font-athletic text-4xl leading-none text-white/40 sm:text-5xl">
+                          {pricingSection.soldOutLabel}
+                        </span>
+                      ) : (
+                        <span className="block font-athletic text-4xl leading-none text-white sm:text-5xl">
+                          {formatCop(priceFor(phase, distance.id))}
+                        </span>
+                      )}
                       {/* Iguala la altura de fila con la columna de categorias,
                           que lleva dos lineas por distancia. En movil sobra: ahi
                           el rotulo ya ocupa esa linea. */}

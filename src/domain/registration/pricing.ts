@@ -1,6 +1,6 @@
 import { currentPresalePhase, priceFor } from '@/domain/event/selectors';
 
-import type { DistanceId, PresalePhase } from '@/domain/event/schema';
+import type { Distance, DistanceId, PresalePhase } from '@/domain/event/schema';
 import type { DiscountCode, PaymentQr, PhaseQrs } from '@/domain/registration/payment';
 
 export interface RegistrationPrice {
@@ -16,7 +16,7 @@ export interface RegistrationPrice {
 
 export type PriceResult =
   | { ok: true; price: RegistrationPrice }
-  | { ok: false; reason: 'registration-closed' | 'unknown-code' | 'no-payment-qr' };
+  | { ok: false; reason: 'registration-closed' | 'sold-out' | 'unknown-code' | 'no-payment-qr' };
 
 /**
  * Lo que tiene que pagar una inscripcion y con que QR.
@@ -28,10 +28,14 @@ export type PriceResult =
  *
  * Un codigo que no existe no se ignora: quien lo escribio espera el descuento
  * y pagaria el precio lleno sin enterarse.
+ *
+ * Una distancia agotada no se cobra aunque tenga precio y QR: el formulario la
+ * deshabilita, pero quien arme la peticion a mano tiene que chocar aca.
  */
 export function priceRegistration(input: {
   distanceId: DistanceId;
   code: string | null;
+  distances: readonly Pick<Distance, 'id' | 'soldOut'>[];
   phases: readonly PresalePhase[];
   codes: readonly DiscountCode[];
   qrsByPhase: Readonly<Record<string, PhaseQrs>>;
@@ -39,6 +43,9 @@ export function priceRegistration(input: {
 }): PriceResult {
   const phase = currentPresalePhase(input.phases, input.now);
   if (!phase) return { ok: false, reason: 'registration-closed' };
+
+  const distance = input.distances.find((candidate) => candidate.id === input.distanceId);
+  if (distance?.soldOut) return { ok: false, reason: 'sold-out' };
 
   const qrs = input.qrsByPhase[phase.id]?.[input.distanceId];
   if (!qrs) return { ok: false, reason: 'no-payment-qr' };

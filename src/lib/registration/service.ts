@@ -22,6 +22,7 @@ export function quote(
   return priceRegistration({
     distanceId: distance.data,
     code,
+    distances,
     phases: presalePhases,
     codes: discountCodes,
     qrsByPhase: paymentQrsByPhase,
@@ -83,6 +84,7 @@ export async function submitRegistration(
   const priced = priceRegistration({
     distanceId: data.distanceId,
     code: data.referralCode,
+    distances,
     phases: presalePhases,
     codes: discountCodes,
     qrsByPhase: paymentQrsByPhase,
