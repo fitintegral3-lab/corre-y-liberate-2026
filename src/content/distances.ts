@@ -38,6 +38,7 @@ export const distances = z
       startTime: '6:10 am',
       description: '7 kilómetros',
       routeImage: '/rutas/7k.webp',
+      soldOut: true,
     },
     {
       id: '10k',

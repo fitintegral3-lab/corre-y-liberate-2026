@@ -24,6 +24,7 @@ export interface DistanceOption {
   label: string;
   description: string;
   routeImage: string;
+  soldOut: boolean;
 }
 
 interface Quote {
@@ -230,12 +231,15 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
                 elegiria esa distancia. */}
             {distances.map((distance) => (
               <div key={distance.id} className="flex flex-col items-center gap-2">
-                <label className={`${choiceClass} w-full flex-1 flex-col py-4`}>
+                <label
+                  className={`${choiceClass} w-full flex-1 flex-col py-4 has-disabled:cursor-not-allowed has-disabled:opacity-50`}
+                >
                   <input
                     type="radio"
                     name="distanceId"
                     value={distance.id}
                     checked={distanceId === distance.id}
+                    disabled={distance.soldOut}
                     onChange={() => chooseDistance(distance.id)}
                     className={styles.radio}
                   />
@@ -243,7 +247,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
                     {distance.label}
                   </span>
                   <span className="mt-1 text-center text-[11px] font-medium text-neutral-500">
-                    {distance.description}
+                    {distance.soldOut ? registrationFormCopy.soldOut : distance.description}
                   </span>
                 </label>
                 <RouteButton label={distance.label} routeImage={distance.routeImage} />

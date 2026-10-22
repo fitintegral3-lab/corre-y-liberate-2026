@@ -31,9 +31,13 @@ export default function InscripcionPage() {
   const config = supabaseConfig();
   if (!config || !receiptsConfig()) notFound();
 
-  // Si no se puede cobrar la distancia mas barata, no se puede cobrar ninguna:
-  // inscripciones cerradas o sin QR para la preventa vigente.
-  const probe = quote(distances[0].id, null);
+  // Si no se puede cobrar la primera distancia con cupo, no se puede cobrar
+  // ninguna: inscripciones cerradas o sin QR para la preventa vigente. Con
+  // todas agotadas las inscripciones estan cerradas aunque la fecha no lo diga.
+  const open = distances.find((distance) => !distance.soldOut);
+  const probe = open
+    ? quote(open.id, null)
+    : ({ ok: false, reason: 'registration-closed' } as const);
   const blocked = probe.ok ? null : probe.reason === 'invalid' ? 'unavailable' : probe.reason;
 
   return (
@@ -70,6 +74,7 @@ export default function InscripcionPage() {
               label: distance.label,
               description: distance.description,
               routeImage: distance.routeImage,
+              soldOut: distance.soldOut,
             }))}
           />
         )}
