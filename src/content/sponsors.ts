@@ -94,6 +94,27 @@ export const sponsors = z
       instagram: 'https://www.instagram.com/bancow.com.co/',
     },
     {
+      id: 'royal-enfield-panamericana',
+      name: 'Royal Enfield Panamericana',
+      logo: '/sponsors/royal_enfield_panamericana.webp',
+      tier: 'oficial',
+      instagram: 'https://www.instagram.com/panamericanamotors/',
+    },
+    {
+      id: 'panamericana-motors',
+      name: 'Panamericana Motors',
+      logo: '/sponsors/panamericana_motors.webp',
+      tier: 'oficial',
+      instagram: 'https://www.instagram.com/panamericanamotors/',
+    },
+    {
+      id: 'hero-panamericana',
+      name: 'Hero Panamericana',
+      logo: '/sponsors/hero_panamericana.webp',
+      tier: 'oficial',
+      instagram: 'https://www.instagram.com/panamericanamotors/',
+    },
+    {
       id: 'cartel-running-club',
       name: 'El Cartel Running Club',
       logo: '/sponsors/cartel_running_club.webp',
