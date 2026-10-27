@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 import { sponsorSchema } from '@/domain/event/schema';
 
+/** Quitar un ID de esta lista vuelve a mostrar el patrocinador. */
+const hiddenSponsorIds = new Set(['electrolife']);
+
 /**
  * Patrocinadores y apoyos.
  *
@@ -122,7 +125,8 @@ export const sponsors = z
       website: 'https://cartel-running-club.vercel.app/',
       instagram: 'https://www.instagram.com/elcartelrunningclub/',
     },
-  ]);
+  ])
+  .filter((sponsor) => !hiddenSponsorIds.has(sponsor.id));
 
 export const sponsorsSection = {
   eyebrow: 'ALIADOS Y APOYOS OFICIALES',
