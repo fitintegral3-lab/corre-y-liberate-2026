@@ -1,5 +1,5 @@
 import { Container, CtaLink, DotPattern } from '@/components/ui';
-import { distances, event, heroSection } from '@/content';
+import { landingDistances as distances, event, heroSection } from '@/content';
 import { siteConfig } from '@/config/site';
 import { RouteButton } from '@/features/routes/RouteButton';
 import { formatDayAndShortMonth } from '@/lib/format';
@@ -40,7 +40,7 @@ export function HeroSection() {
             id="distancias"
             className="inline-block w-full max-w-lg rounded-2xl border-2 border-white/60 bg-black/40 p-4 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-white/90 hover:shadow-orange-950/40 sm:p-5"
           >
-            <dl className="grid grid-cols-4 divide-x divide-white/40 text-center">
+            <dl className="grid grid-flow-col auto-cols-fr divide-x divide-white/40 text-center">
               {distances.map((distance) => (
                 <div
                   key={distance.id}

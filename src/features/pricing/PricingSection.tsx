@@ -1,5 +1,5 @@
 import { Container, CtaLink } from '@/components/ui';
-import { distances, presalePhases, pricingSection } from '@/content';
+import { landingDistances as distances, presalePhases, pricingSection } from '@/content';
 import { siteConfig } from '@/config/site';
 import { priceFor } from '@/domain/event/selectors';
 import { formatCop, formatDateRange } from '@/lib/format';

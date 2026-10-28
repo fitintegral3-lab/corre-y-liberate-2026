@@ -1,4 +1,4 @@
-import { distances, editionName, event, eventName, venue } from '@/content';
+import { landingDistances as distances, editionName, event, eventName, venue } from '@/content';
 import { siteConfig } from '@/config/site';
 import { isProduction } from '@/lib/env';
 import { formatWeekdayLongDate } from '@/lib/format';
@@ -17,7 +17,7 @@ const distanceList = [...distances]
   .sort((a, b) => b.kilometers - a.kilometers)
   .map((distance) => distance.fullLabel);
 
-/** `10K, 7K, 5K y 3K`. */
+/** Une las distancias visibles, por ejemplo: `10K, 5K y 3K`. */
 function humanJoin(values: readonly string[]): string {
   if (values.length <= 1) return values[0] ?? '';
   return `${values.slice(0, -1).join(', ')} y ${values[values.length - 1]}`;

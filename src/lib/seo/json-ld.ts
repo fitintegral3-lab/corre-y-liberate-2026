@@ -1,6 +1,6 @@
 import {
-  awards,
-  distances,
+  landingAwards as awards,
+  landingDistances as distances,
   event,
   eventName,
   presalePhases,
