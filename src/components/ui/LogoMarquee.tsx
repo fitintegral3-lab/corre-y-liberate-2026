@@ -76,6 +76,9 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
                       <Image
                         src={item.logo}
                         alt={isCopy ? '' : item.name}
+                        // La pista entra por transform: cargar al entrar en el
+                        // viewport puede dejar logos vacios hasta el hover.
+                        loading="eager"
                         fill
                         sizes="(min-width: 640px) 180px, 140px"
                         className="object-contain transition-transform duration-300 group-hover/logo:scale-105"
