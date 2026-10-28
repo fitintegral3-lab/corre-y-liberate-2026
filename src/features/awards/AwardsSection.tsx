@@ -1,6 +1,11 @@
 import { awardCardStyles } from '@/features/awards/theme';
 import { Container, CtaLink, DotPattern } from '@/components/ui';
-import { awards, awardsSection, distances, familyRunCard } from '@/content';
+import {
+  landingAwards as awards,
+  awardsSection,
+  landingDistances as distances,
+  familyRunCard,
+} from '@/content';
 import { siteConfig } from '@/config/site';
 import { awardTotals, findDistance } from '@/domain/event/selectors';
 import { cn } from '@/lib/utils/cn';

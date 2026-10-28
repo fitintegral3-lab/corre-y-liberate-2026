@@ -7,6 +7,7 @@
 export { awards, awardsSection, familyRunCard } from '@/content/awards';
 export { runningClubs, runningClubsSection } from '@/content/clubs';
 export { distances } from '@/content/distances';
+export { landingAwards, landingDistances } from '@/content/landing';
 export {
   editionLabel,
   editionName,

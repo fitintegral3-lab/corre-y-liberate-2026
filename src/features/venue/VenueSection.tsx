@@ -3,7 +3,14 @@ import Image from 'next/image';
 
 import { Container, CtaLink } from '@/components/ui';
 import { RouteButton } from '@/features/routes/RouteButton';
-import { distances, event, fullTagline, venue, venueFullAddress, venueSection } from '@/content';
+import {
+  landingDistances as distances,
+  event,
+  fullTagline,
+  venue,
+  venueFullAddress,
+  venueSection,
+} from '@/content';
 import { formatDayAndShortMonth, formatWeekday, formatWeekdayLongDate } from '@/lib/format';
 
 export function VenueSection() {
@@ -98,7 +105,7 @@ export function VenueSection() {
               <span className="mb-3 block font-athletic-semibold text-xs tracking-wider text-brand-orange">
                 {venueSection.scheduleLabel}
               </span>
-              <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+              <dl className="grid grid-cols-1 gap-2 text-center sm:grid-flow-col sm:auto-cols-fr">
                 {distances.map((distance) => (
                   <div
                     key={distance.id}

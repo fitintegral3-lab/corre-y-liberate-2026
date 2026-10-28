@@ -64,8 +64,8 @@ export function RouteButton({ label, routeImage, className }: RouteButtonProps) 
             <Image
               src={routeImage}
               alt={`Mapa de la ruta ${label}`}
-              width={1600}
-              height={2000}
+              width={1080}
+              height={1350}
               sizes="(min-width: 640px) 36rem, 100vw"
               // Se monta recien al abrir, asi que diferir la carga no ahorra nada, y
               // dentro del <dialog> la carga diferida a veces no arranca nunca.
