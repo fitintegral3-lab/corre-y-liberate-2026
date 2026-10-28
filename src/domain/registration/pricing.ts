@@ -16,7 +16,16 @@ export interface RegistrationPrice {
 
 export type PriceResult =
   | { ok: true; price: RegistrationPrice }
-  | { ok: false; reason: 'registration-closed' | 'sold-out' | 'unknown-code' | 'no-payment-qr' };
+  | {
+      ok: false;
+      reason:
+        | 'registration-closed'
+        | 'sold-out'
+        | 'unknown-code'
+        | 'no-payment-qr'
+        | 'shirt-option-unavailable'
+        | 'no-shirt-discount';
+    };
 
 /**
  * Lo que tiene que pagar una inscripcion y con que QR.
@@ -35,6 +44,8 @@ export type PriceResult =
 export function priceRegistration(input: {
   distanceId: DistanceId;
   code: string | null;
+  includesShirt?: boolean;
+  withoutShirtQrs?: Readonly<Partial<Record<DistanceId, PaymentQr>>>;
   distances: readonly Pick<Distance, 'id' | 'soldOut'>[];
   phases: readonly PresalePhase[];
   codes: readonly DiscountCode[];
@@ -46,6 +57,16 @@ export function priceRegistration(input: {
 
   const distance = input.distances.find((candidate) => candidate.id === input.distanceId);
   if (distance?.soldOut) return { ok: false, reason: 'sold-out' };
+
+  if (input.includesShirt === false) {
+    const qr = input.withoutShirtQrs?.[input.distanceId];
+    if (!qr) return { ok: false, reason: 'shirt-option-unavailable' };
+    if (input.code !== null) return { ok: false, reason: 'no-shirt-discount' };
+    return {
+      ok: true,
+      price: { phase, basePrice: qr.amount, code: null, total: qr.amount, discount: 0, qr },
+    };
+  }
 
   const qrs = input.qrsByPhase[phase.id]?.[input.distanceId];
   if (!qrs) return { ok: false, reason: 'no-payment-qr' };

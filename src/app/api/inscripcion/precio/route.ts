@@ -3,7 +3,11 @@ import { quote } from '@/lib/registration/service';
 /** Precio y QR para mostrar antes de pagar. El monto que vale lo recalcula el envio. */
 export async function GET(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
-  const result = quote(params.get('distance'), params.get('code'));
+  const shirt = params.get('includesShirt');
+  if (shirt !== null && shirt !== 'true' && shirt !== 'false') {
+    return Response.json({ ok: false, reason: 'invalid' }, { status: 422 });
+  }
+  const result = quote(params.get('distance'), params.get('code'), new Date(), shirt !== 'false');
   const headers = { 'Cache-Control': 'no-store' };
   if (!result.ok) return Response.json(result, { status: 422, headers });
 

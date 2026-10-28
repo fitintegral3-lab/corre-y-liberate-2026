@@ -1,5 +1,6 @@
 import { Container, CtaLink } from '@/components/ui';
 import { landingDistances as distances, presalePhases, pricingSection } from '@/content';
+import { withoutShirtPrices } from '@/content/without-shirt';
 import { siteConfig } from '@/config/site';
 import { priceFor } from '@/domain/event/selectors';
 import { formatCop, formatDateRange } from '@/lib/format';
@@ -129,6 +130,35 @@ export function PricingSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div
+          className="mx-auto mt-8 max-w-3xl rounded-2xl border border-white/20 p-6 backdrop-blur-md"
+          style={{ backgroundColor: cardBackground }}
+        >
+          <h3 className="font-athletic-bold text-2xl tracking-wider">
+            TAMBIÉN PUEDES CORRER SIN CAMISETA
+          </h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {distances
+              .filter((distance) => distance.id in withoutShirtPrices)
+              .map((distance) => (
+                <p key={distance.id} className="text-lg">
+                  {distance.label} sin camiseta:{' '}
+                  <strong>
+                    {distance.soldOut
+                      ? pricingSection.soldOutLabel
+                      : formatCop(
+                          withoutShirtPrices[distance.id as keyof typeof withoutShirtPrices],
+                        )}
+                  </strong>
+                </p>
+              ))}
+          </div>
+          <p className="mt-3 text-sm text-white/80">
+            Elige con o sin camiseta al inscribirte. Precios sin camiseta no acumulables con códigos
+            de descuento.
+          </p>
         </div>
 
         <div className="mt-12">

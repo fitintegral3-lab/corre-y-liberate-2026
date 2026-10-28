@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckCircle2 } from 'lucide-react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 
 import {
   registrationErrors,
@@ -9,6 +9,7 @@ import {
   terms,
   type RegistrationErrorReason,
 } from '@/content';
+import { supportsWithoutShirt, withoutShirtPrices } from '@/content/without-shirt';
 import { BLOOD_TYPES, SHIRT_SIZES } from '@/domain/registration/schema';
 import { RouteButton } from '@/features/routes/RouteButton';
 import { formatCop } from '@/lib/format';
@@ -29,6 +30,7 @@ export interface DistanceOption {
 
 interface Quote {
   distanceId: string;
+  includesShirt: boolean;
   code: string | null;
   basePrice: number;
   discount: number;
@@ -61,6 +63,8 @@ function isReason(value: unknown): value is RegistrationErrorReason {
  */
 export function RegistrationForm({ distances }: RegistrationFormProps) {
   const [distanceId, setDistanceId] = useState('');
+  const [includesShirt, setIncludesShirt] = useState(true);
+  const quoteRequest = useRef(0);
   const [codeInput, setCodeInput] = useState('');
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteError, setQuoteError] = useState<RegistrationErrorReason | null>(null);
@@ -71,9 +75,19 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
   const [uploaded, setUploaded] = useState<{ file: File; path: string } | null>(null);
   const [done, setDone] = useState<{ total: number; category: string } | null>(null);
 
-  async function loadQuote(nextDistance: string, code: string | null) {
+  async function loadQuote(
+    nextDistance: string,
+    code: string | null,
+    nextIncludesShirt = includesShirt,
+  ) {
+    const request = ++quoteRequest.current;
+    setQuote(null);
     setQuoteError(null);
-    const params = new URLSearchParams({ distance: nextDistance, code: code ?? '' });
+    const params = new URLSearchParams({
+      distance: nextDistance,
+      code: code ?? '',
+      includesShirt: String(nextIncludesShirt),
+    });
     try {
       const response = await fetch(`/api/inscripcion/precio?${params}`);
       const body = (await response.json()) as
@@ -86,9 +100,11 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
             qrImage: string;
           }
         | { ok: false; reason: string };
+      if (request !== quoteRequest.current) return;
       if (body.ok) {
         setQuote({
           distanceId: nextDistance,
+          includesShirt: nextIncludesShirt,
           code: body.code,
           basePrice: body.basePrice,
           discount: body.discount,
@@ -97,17 +113,22 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
         });
       } else {
         // Un codigo invalido no borra el precio: se vuelve al precio lleno.
-        if (code) await loadQuote(nextDistance, null);
+        if (code) {
+          await loadQuote(nextDistance, null, nextIncludesShirt);
+          if (quoteRequest.current !== request + 1) return;
+        }
         setQuoteError(isReason(body.reason) ? body.reason : 'unavailable');
       }
     } catch {
-      setQuoteError('unavailable');
+      if (request === quoteRequest.current) setQuoteError('unavailable');
     }
   }
 
   function chooseDistance(next: string) {
     setDistanceId(next);
-    void loadQuote(next, quote?.code ?? null);
+    const nextIncludesShirt = supportsWithoutShirt(next) ? includesShirt : true;
+    setIncludesShirt(nextIncludesShirt);
+    void loadQuote(next, nextIncludesShirt ? (quote?.code ?? null) : null, nextIncludesShirt);
   }
 
   async function uploadReceipt(file: File): Promise<string> {
@@ -141,6 +162,10 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
     event.preventDefault();
     setFormError(null);
     setFieldErrors({});
+    if (!quote || quote.distanceId !== distanceId || quote.includesShirt !== includesShirt) {
+      setFormError(quoteError ?? 'unavailable');
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const file = form.get('receipt');
     const hasFile = file instanceof File && file.size > 0;
@@ -156,6 +181,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
         String(form.get('birthMonth') ?? ''),
         String(form.get('birthYear') ?? ''),
       ),
+      includesShirt,
       shirtSize: form.get('shirtSize'),
       cedula: form.get('cedula'),
       phone: form.get('phone'),
@@ -267,24 +293,51 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
             </label>
           </div>
         </Field>
-        <Field label="Talla de camiseta *" error={error('shirtSize')} htmlFor="shirtSize">
-          <select
-            id="shirtSize"
-            name="shirtSize"
-            defaultValue=""
-            className={inputClass}
-            aria-invalid={Boolean(error('shirtSize'))}
-          >
-            <option value="" disabled>
-              Elige una talla
-            </option>
-            {SHIRT_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
+        {supportsWithoutShirt(distanceId) && (
+          <Field label="¿Quieres incluir camiseta? *" error={error('includesShirt')} as="fieldset">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[true, false].map((value) => (
+                <label key={String(value)} className={choiceClass}>
+                  <input
+                    type="radio"
+                    name="includesShirt"
+                    value={String(value)}
+                    checked={includesShirt === value}
+                    onChange={() => {
+                      setIncludesShirt(value);
+                      setCodeInput('');
+                      void loadQuote(distanceId, null, value);
+                    }}
+                    className={styles.radio}
+                  />
+                  {value
+                    ? 'Con camiseta'
+                    : `Sin camiseta · ${formatCop(withoutShirtPrices[distanceId])}`}
+                </label>
+              ))}
+            </div>
+          </Field>
+        )}
+        {includesShirt && (
+          <Field label="Talla de camiseta *" error={error('shirtSize')} htmlFor="shirtSize">
+            <select
+              id="shirtSize"
+              name="shirtSize"
+              defaultValue=""
+              className={inputClass}
+              aria-invalid={Boolean(error('shirtSize'))}
+            >
+              <option value="" disabled>
+                Elige una talla
               </option>
-            ))}
-          </select>
-        </Field>
+              {SHIRT_SIZES.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <Field label="Equipo o club" error={error('team')} htmlFor="team">
           <input id="team" name="team" className={inputClass} autoComplete="organization" />
         </Field>
@@ -442,37 +495,53 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
           </p>
         ) : (
           <div className="space-y-5">
-            <div>
-              <label htmlFor="code" className={labelClass}>
-                Código de descuento (opcional)
-              </label>
-              <div className="mt-2 flex gap-2">
-                <input
-                  id="code"
-                  value={codeInput}
-                  onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
-                  placeholder="TU CÓDIGO"
-                  autoComplete="off"
-                  maxLength={20}
-                  className={`${inputClass} min-w-0 flex-1 tracking-wider uppercase`}
-                />
-                <button
-                  type="button"
-                  onClick={() => void loadQuote(distanceId, codeInput.trim() || null)}
-                  disabled={codeInput.trim() === ''}
-                  className="cursor-pointer rounded-xl bg-neutral-900 px-5 font-athletic-bold text-sm tracking-wider text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  APLICAR
-                </button>
+            {includesShirt ? (
+              <div>
+                <label htmlFor="code" className={labelClass}>
+                  Código de descuento (opcional)
+                </label>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    id="code"
+                    value={codeInput}
+                    onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
+                    placeholder="TU CÓDIGO"
+                    autoComplete="off"
+                    maxLength={20}
+                    className={`${inputClass} min-w-0 flex-1 tracking-wider uppercase`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void loadQuote(distanceId, codeInput.trim() || null)}
+                    disabled={codeInput.trim() === ''}
+                    className="cursor-pointer rounded-xl bg-neutral-900 px-5 font-athletic-bold text-sm tracking-wider text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    APLICAR
+                  </button>
+                </div>
+                {quoteError && (
+                  <p role="alert" className="mt-2 text-sm font-semibold text-red-700">
+                    {registrationErrors[quoteError]}
+                  </p>
+                )}
               </div>
-              {quoteError && (
-                <p role="alert" className="mt-2 text-sm font-semibold text-red-700">
-                  {registrationErrors[quoteError]}
-                </p>
-              )}
-            </div>
+            ) : (
+              <p className="text-sm text-neutral-600">
+                Inscripción sin camiseta. Precio fijo, sin descuentos adicionales.
+              </p>
+            )}
+            {!includesShirt && quoteError && (
+              <p role="alert" className="text-sm font-semibold text-red-700">
+                {registrationErrors[quoteError]}
+              </p>
+            )}
+            {!quote && !quoteError && (
+              <p role="status" className="text-sm text-neutral-600">
+                Consultando el valor y el QR…
+              </p>
+            )}
 
-            {quote && quote.distanceId === distanceId && (
+            {quote && quote.distanceId === distanceId && quote.includesShirt === includesShirt && (
               <QrPayment
                 qrImage={quote.qrImage}
                 distanceId={quote.distanceId}
@@ -480,6 +549,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
                 basePrice={quote.basePrice}
                 discount={quote.discount}
                 code={quote.code}
+                includesShirt={quote.includesShirt}
               />
             )}
 
@@ -534,7 +604,12 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
 
       <button
         type="submit"
-        disabled={sending}
+        disabled={
+          sending ||
+          !quote ||
+          quote.distanceId !== distanceId ||
+          quote.includesShirt !== includesShirt
+        }
         className="w-full cursor-pointer rounded-full bg-brand-orange px-6 py-4 font-athletic-bold text-sm tracking-wider text-white shadow-lg shadow-orange-900/20 transition-colors hover:bg-brand-orange-deep disabled:cursor-wait disabled:opacity-60"
       >
         {sending ? 'ENVIANDO…' : registrationFormCopy.submit}

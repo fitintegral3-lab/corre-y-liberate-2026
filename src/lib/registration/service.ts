@@ -2,7 +2,11 @@ import { distances, event, presalePhases, terms } from '@/content';
 import { distanceIdSchema } from '@/domain/event/schema';
 import { priceRegistration, type PriceResult } from '@/domain/registration/pricing';
 import { categoryFor, cedulaSchema, registrationSchema } from '@/domain/registration/schema';
-import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
+import {
+  discountCodes,
+  paymentQrsByPhase,
+  withoutShirtQrs,
+} from '@/lib/registration/payment-config';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { SheetRegistration } from '@/lib/sheets/registration-row';
 import { receiptExists, receiptUrl, type ReceiptsConfig } from '@/lib/gcs/receipts';
@@ -15,12 +19,15 @@ export function quote(
   rawDistance: string | null,
   rawCode: string | null,
   now = new Date(),
+  includesShirt = true,
 ): PriceResult | { ok: false; reason: 'invalid' } {
   const distance = distanceIdSchema.safeParse(rawDistance);
   if (!distance.success) return { ok: false, reason: 'invalid' };
   const code = (rawCode ?? '').trim().toUpperCase() || null;
   return priceRegistration({
     distanceId: distance.data,
+    includesShirt,
+    withoutShirtQrs,
     code,
     distances,
     phases: presalePhases,
@@ -83,6 +90,8 @@ export async function submitRegistration(
 
   const priced = priceRegistration({
     distanceId: data.distanceId,
+    includesShirt: data.includesShirt,
+    withoutShirtQrs,
     code: data.referralCode,
     distances,
     phases: presalePhases,

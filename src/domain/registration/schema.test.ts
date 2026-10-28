@@ -62,6 +62,33 @@ describe('registrationSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it.each(['5k', '10k'])(
+    'acepta %s sin talla y guarda Sin camiseta aunque envíen una talla',
+    (distanceId) => {
+      for (const shirtSize of [null, undefined, 'Small (S)']) {
+        expect(
+          registrationSchema.parse({ ...valid, distanceId, includesShirt: false, shirtSize }),
+        ).toMatchObject({ includesShirt: false, shirtSize: 'Sin camiseta' });
+      }
+    },
+  );
+
+  it('con camiseta exige una talla válida y conserva compatibilidad con el formulario anterior', () => {
+    expect(registrationSchema.parse(valid).includesShirt).toBe(true);
+    for (const shirtSize of [null, undefined, '', 'Sin camiseta', 'otra']) {
+      expect(errorsOf({ ...valid, includesShirt: true, shirtSize })).toHaveProperty('shirtSize');
+    }
+  });
+
+  it.each(['3k-infantil', '7k'])(
+    'rechaza %s sin camiseta aunque manipulen la petición',
+    (distanceId) => {
+      expect(errorsOf({ ...valid, distanceId, includesShirt: false })).toHaveProperty(
+        'includesShirt',
+      );
+    },
+  );
+
   it('exige aceptar el reglamento', () => {
     expect(errorsOf({ ...valid, acceptedTerms: false })).toHaveProperty('acceptedTerms');
   });

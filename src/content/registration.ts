@@ -27,7 +27,7 @@ export const registrationSteps = z
       order: 2,
       title: 'Llena el formulario',
       description:
-        'Tus datos, la distancia que corres, la talla de la camiseta y un contacto de emergencia.',
+        'Tus datos, la distancia que corres, si quieres camiseta, tu talla si la incluyes y un contacto de emergencia.',
     },
     {
       order: 3,
