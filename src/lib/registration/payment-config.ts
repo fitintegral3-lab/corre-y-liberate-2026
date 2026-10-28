@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+import { withoutShirtPrices } from '@/content/without-shirt';
+import type { DistanceId } from '@/domain/event/schema';
+import type { PaymentQr } from '@/domain/registration/payment';
+
 import { discountCodeSchema, phaseQrsSchema } from '@/domain/registration/payment';
 
 import qr10kDiscount from './qr-descuento/10k.webp';
@@ -70,3 +74,9 @@ export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
     },
   },
 });
+
+/** QR originales suministrados para las opciones sin camiseta. */
+export const withoutShirtQrs: Readonly<Partial<Record<DistanceId, PaymentQr>>> = {
+  '5k': { image: '/qr/5k-sin-camiseta.png', amount: withoutShirtPrices['5k'] },
+  '10k': { image: '/qr/10k-sin-camiseta.png', amount: withoutShirtPrices['10k'] },
+};

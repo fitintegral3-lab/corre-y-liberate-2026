@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { supportsWithoutShirt } from '@/content/without-shirt';
 import { distanceIdSchema } from '@/domain/event/schema';
 import { toEventIsoDate } from '@/lib/format/date';
 
@@ -84,7 +85,8 @@ export const registrationSchema = z
       .refine((value) => value >= '1920-01-01' && value <= toEventIsoDate(new Date()), {
         message: 'Revisa la fecha de nacimiento',
       }),
-    shirtSize: z.enum(SHIRT_SIZES, { error: 'Elige la talla de camiseta' }),
+    includesShirt: z.boolean().default(true),
+    shirtSize: z.string().nullish(),
     cedula: cedulaSchema,
     phone: mobileSchema('El celular'),
     eps: requiredText('La EPS o seguro de salud'),
@@ -110,6 +112,19 @@ export const registrationSchema = z
       .regex(/^pendientes\/[0-9a-f-]{36}\.(jpg|png|webp|pdf)$/, 'Sube el comprobante de pago'),
   })
   .superRefine((data, ctx) => {
+    if (
+      data.includesShirt &&
+      !SHIRT_SIZES.includes(data.shirtSize as (typeof SHIRT_SIZES)[number])
+    ) {
+      ctx.addIssue({ code: 'custom', path: ['shirtSize'], message: 'Elige la talla de camiseta' });
+    }
+    if (!data.includesShirt && !supportsWithoutShirt(data.distanceId)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['includesShirt'],
+        message: 'La opción sin camiseta solo está disponible para 5K y 10K',
+      });
+    }
     // Quien declara una enfermedad tiene que decir cual: es lo que el equipo
     // medico necesita el dia de la carrera, y un "SI" solo no le sirve.
     if (data.hasIllness && !data.medicalCondition) {
@@ -126,7 +141,11 @@ export const registrationSchema = z
         message: 'El contacto de emergencia tiene que ser otra persona',
       });
     }
-  });
+  })
+  .transform((data) => ({
+    ...data,
+    shirtSize: data.includesShirt ? data.shirtSize! : 'Sin camiseta',
+  }));
 
 export type RegistrationInput = z.input<typeof registrationSchema>;
 export type Registration = z.output<typeof registrationSchema>;

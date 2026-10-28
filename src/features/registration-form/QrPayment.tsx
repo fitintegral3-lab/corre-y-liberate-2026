@@ -8,6 +8,7 @@ import { formatCop } from '@/lib/format';
 
 interface QrPaymentProps {
   qrImage: string;
+  includesShirt: boolean;
   distanceId: string;
   total: number;
   basePrice: number;
@@ -25,6 +26,7 @@ interface QrPaymentProps {
  */
 export function QrPayment({
   qrImage,
+  includesShirt,
   distanceId,
   total,
   basePrice,
@@ -32,11 +34,12 @@ export function QrPayment({
   code,
 }: QrPaymentProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const alt = `QR Bre-B para pagar ${formatCop(total)}`;
+  const optionLabel = `${distanceId.toUpperCase()} ${includesShirt ? 'con camiseta' : 'sin camiseta'}`;
+  const alt = `QR Bre-B ${optionLabel} para pagar ${formatCop(total)}`;
   const download = (
     <a
       href={qrImage}
-      download={`qr-bre-b-corre-y-liberate-${distanceId}.webp`}
+      download={`qr-bre-b-corre-y-liberate-${distanceId}-${includesShirt ? 'con' : 'sin'}-camiseta.${qrImage.endsWith('.png') ? 'png' : 'webp'}`}
       className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-neutral-900 px-4 py-2 font-athletic-bold text-xs tracking-wider text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
     >
       <Download className="h-4 w-4" aria-hidden="true" />
@@ -70,6 +73,7 @@ export function QrPayment({
         <p className="font-athletic-bold text-xs tracking-widest text-brand-orange">
           PAGA CON QR BRE-B
         </p>
+        <p className="font-semibold text-neutral-800">{optionLabel}</p>
         {discount > 0 && code && (
           <p className="text-neutral-500">
             <span className="line-through">{formatCop(basePrice)}</span>{' '}
@@ -108,6 +112,7 @@ export function QrPayment({
           <p className="font-athletic-bold text-xs tracking-widest text-brand-orange">
             PAGO CON QR BRE-B
           </p>
+          <p className="mt-2 text-sm font-semibold">{optionLabel}</p>
           <h3 id="qr-dialog-title" className="mt-1 font-athletic text-4xl text-neutral-950">
             {formatCop(total)}
           </h3>

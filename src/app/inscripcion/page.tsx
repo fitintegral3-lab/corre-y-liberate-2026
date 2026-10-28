@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { Container } from '@/components/ui';
 import { distances, homeAnchor, registrationErrors, registrationFormCopy } from '@/content';
+import { supportsWithoutShirt } from '@/content/without-shirt';
 import { RegistrationForm } from '@/features/registration-form/RegistrationForm';
 import { receiptsConfig } from '@/lib/gcs/receipts';
 import { quote } from '@/lib/registration/service';
@@ -31,14 +32,22 @@ export default function InscripcionPage() {
   const config = supabaseConfig();
   if (!config || !receiptsConfig()) notFound();
 
-  // Si no se puede cobrar la primera distancia con cupo, no se puede cobrar
-  // ninguna: inscripciones cerradas o sin QR para la preventa vigente. Con
-  // todas agotadas las inscripciones estan cerradas aunque la fecha no lo diga.
-  const open = distances.find((distance) => !distance.soldOut);
-  const probe = open
-    ? quote(open.id, null)
-    : ({ ok: false, reason: 'registration-closed' } as const);
-  const blocked = probe.ok ? null : probe.reason === 'invalid' ? 'unavailable' : probe.reason;
+  // Las opciones sin camiseta pueden seguir disponibles aunque una nueva
+  // preventa todavía no tenga QR con camiseta.
+  const probes = distances
+    .filter((distance) => !distance.soldOut)
+    .flatMap((distance) => [
+      quote(distance.id, null),
+      ...(supportsWithoutShirt(distance.id) ? [quote(distance.id, null, new Date(), false)] : []),
+    ]);
+  const failure = probes.find((probe) => !probe.ok);
+  const blocked = probes.some((probe) => probe.ok)
+    ? null
+    : failure && !failure.ok
+      ? failure.reason === 'invalid'
+        ? 'unavailable'
+        : failure.reason
+      : 'registration-closed';
 
   return (
     <main className="min-h-screen bg-neutral-50 px-4 py-10 sm:px-8 sm:py-16">

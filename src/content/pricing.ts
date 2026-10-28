@@ -43,7 +43,7 @@ export const pricingSection = {
   eyebrow: 'PREVENTAS',
   title: '¡ASEGURA TU CUPO AL MEJOR PRECIO!',
   categoriesTitle: 'CATEGORÍAS',
-  categoriesHint: 'Precio por persona, en pesos colombianos',
+  categoriesHint: 'Con camiseta · Precio por persona, en pesos colombianos',
   ctaLabel: 'ASEGURA TU CUPO AHORA',
   soldOutLabel: 'AGOTADO',
 } as const;

@@ -4,7 +4,7 @@ import { registrationSchema } from '@/domain/registration/schema';
 
 import { birthDateFromParts } from './birth-date';
 
-const schema = registrationSchema.shape.birthDate;
+const schema = registrationSchema.in.shape.birthDate;
 
 describe('fecha de nacimiento sin calendario nativo', () => {
   it('envía al servidor la misma fecha ISO desde día, mes y año', () => {
