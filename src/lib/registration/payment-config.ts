@@ -43,6 +43,7 @@ export const discountCodes = z.array(discountCodeSchema).parse([
   { code: 'COLCRECER', owner: 'Colcrecer' },
   { code: 'INTEGRALFIT', owner: 'Integral Fit' },
   { code: 'ROBINSONMARTINEZ', owner: 'Robinson Martinez' },
+  { code: 'AREPAROJA', owner: 'Arepa Roja' },
 ]);
 
 /**
