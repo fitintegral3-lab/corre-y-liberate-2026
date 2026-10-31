@@ -118,6 +118,22 @@ export const sponsors = z
       instagram: 'https://www.instagram.com/panamericanamotors/',
     },
     {
+      id: 'arepa-roja',
+      name: 'Arepa Roja',
+      logo: '/sponsors/arepa_roja.png',
+      tier: 'oficial',
+      website: 'https://queresto.com/ArepaRojaJamundi',
+      instagram: 'https://www.instagram.com/areparoja/',
+    },
+    {
+      id: 'sucol',
+      name: 'SUCOL Soluciones Urbanísticas',
+      logo: '/sponsors/sucol.png',
+      tier: 'oficial',
+      website: 'https://sucol.co/',
+      instagram: 'https://www.instagram.com/constructorasucol/',
+    },
+    {
       id: 'cartel-running-club',
       name: 'El Cartel Running Club',
       logo: '/sponsors/cartel_running_club.webp',
