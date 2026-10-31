@@ -3,6 +3,7 @@
 import { ExternalLink, X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useId, useRef, useState } from 'react';
+import type { PointerEvent } from 'react';
 
 import { InstagramIcon } from '@/components/ui/icons/SocialIcons';
 
@@ -23,6 +24,15 @@ const MIN_LOGOS_PER_HALF = 8;
 /** Segundos que tarda en cruzar cada logo: la velocidad no cambia con el largo de la lista. */
 const SECONDS_PER_LOGO = 5;
 
+interface MarqueeGesture {
+  pointerId: number;
+  x: number;
+  y: number;
+  time: number;
+  animation: Animation;
+  dragged: boolean;
+}
+
 /**
  * Tira de logos en loop que abre, al tocar un logo, un modal con la pagina
  * oficial y el Instagram de quien lo firma. Un logo sin ninguno de los dos se
@@ -31,11 +41,63 @@ const SECONDS_PER_LOGO = 5;
 export function LogoMarquee({ items }: LogoMarqueeProps) {
   const [selected, setSelected] = useState<LinkedLogo | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const gestureRef = useRef<MarqueeGesture | null>(null);
+  const suppressClickRef = useRef(false);
+  const [pointerDown, setPointerDown] = useState(false);
+  const [mouseOver, setMouseOver] = useState(false);
+  const [keyboardFocus, setKeyboardFocus] = useState(false);
   const titleId = useId();
 
   const repeatsPerHalf = Math.ceil(MIN_LOGOS_PER_HALF / items.length);
   const copies = repeatsPerHalf * 2;
-  const duration = `${repeatsPerHalf * items.length * SECONDS_PER_LOGO}s`;
+  const durationMs = repeatsPerHalf * items.length * SECONDS_PER_LOGO * 1000;
+  const paused = pointerDown || mouseOver || keyboardFocus || selected !== null;
+
+  function startGesture(event: PointerEvent<HTMLDivElement>) {
+    if (!event.isPrimary || event.button !== 0 || gestureRef.current) return;
+    suppressClickRef.current = false;
+    const animation = trackRef.current?.getAnimations()[0];
+    // Con movimiento reducido se muestra la lista completa, sin animacion.
+    if (!animation || typeof animation.currentTime !== 'number') return;
+    gestureRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      time: animation.currentTime,
+      animation,
+      dragged: false,
+    };
+    setPointerDown(true);
+  }
+
+  function moveGesture(event: PointerEvent<HTMLDivElement>) {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (!gesture.dragged) {
+      // Separar un toque de un arrastre y dejar libre el scroll vertical.
+      if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
+      gesture.dragged = true;
+      suppressClickRef.current = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    const halfWidth = (trackRef.current?.getBoundingClientRect().width ?? 0) / 2;
+    if (!halfWidth) return;
+    const time = gesture.time - (dx / halfWidth) * durationMs;
+    // Las dos mitades son identicas: envolver el tiempo evita topes y saltos.
+    gesture.animation.currentTime = ((time % durationMs) + durationMs) % durationMs;
+  }
+
+  function endGesture(event: PointerEvent<HTMLDivElement>) {
+    if (gestureRef.current?.pointerId !== event.pointerId) return;
+    gestureRef.current = null;
+    setPointerDown(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
 
   // `showModal` y no un div con `open`: el navegador ya encierra el foco,
   // cierra con Escape, deja inerte el resto de la pagina y devuelve el foco
@@ -46,7 +108,37 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
 
   return (
     <>
-      <div className="group mt-12 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)] sm:mt-16 motion-reduce:[mask-image:none]">
+      <div
+        className="mt-12 w-full touch-pan-y cursor-grab overflow-hidden select-none active:cursor-grabbing [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)] sm:mt-16 motion-reduce:cursor-auto motion-reduce:[mask-image:none]"
+        onPointerDown={startGesture}
+        onPointerMove={moveGesture}
+        onPointerUp={endGesture}
+        onPointerCancel={endGesture}
+        onLostPointerCapture={(event) => {
+          if (event.target === event.currentTarget) endGesture(event);
+        }}
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') setMouseOver(true);
+        }}
+        onPointerLeave={(event) => {
+          if (event.pointerType !== 'mouse') return;
+          setMouseOver(false);
+          if (!event.currentTarget.hasPointerCapture(event.pointerId)) endGesture(event);
+        }}
+        onFocusCapture={(event) => {
+          setKeyboardFocus(event.target.matches(':focus-visible'));
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setKeyboardFocus(false);
+        }}
+        onClickCapture={(event) => {
+          if (suppressClickRef.current && event.detail > 0) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
+        onDragStart={(event) => event.preventDefault()}
+      >
         {/* La lista va repetida en dos mitades iguales y la pista se corre
             -50%: cuando termina, la segunda mitad esta exactamente donde
             arranco la primera y el salto no se ve. Por eso el espacio entre
@@ -56,11 +148,15 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
             las demas son decorado. Con movimiento reducido la animacion no
             corre y las copias sobran: ahi la lista se acomoda en filas para
             que ningun logo quede afuera.
-            Se frena tambien con el foco adentro: con teclado no hay hover, y
-            un logo que se escapa mientras se lo elige no se puede abrir. */}
+            La pausa distingue mouse y teclado del toque: el foco y hover
+            persistentes del movil no deben frenar la pista al soltar. */}
         <div
-          style={{ animationDuration: duration }}
-          className="flex w-max animate-marquee group-focus-within:[animation-play-state:paused] group-hover:[animation-play-state:paused] motion-reduce:w-full motion-reduce:animate-none"
+          ref={trackRef}
+          style={{
+            animationDuration: `${durationMs}ms`,
+            animationPlayState: paused ? 'paused' : 'running',
+          }}
+          className="flex w-max animate-marquee motion-reduce:w-full motion-reduce:animate-none"
         >
           {Array.from({ length: copies }, (_, copy) => {
             const isCopy = copy > 0;
@@ -79,6 +175,7 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
                         // La pista entra por transform: cargar al entrar en el
                         // viewport puede dejar logos vacios hasta el hover.
                         loading="eager"
+                        draggable={false}
                         fill
                         sizes="(min-width: 640px) 180px, 140px"
                         className="object-contain transition-transform duration-300 group-hover/logo:scale-105"
