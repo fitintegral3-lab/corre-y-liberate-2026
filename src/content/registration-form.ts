@@ -40,7 +40,7 @@ export const registrationErrors = {
   'no-shirt-discount':
     'La inscripción sin camiseta tiene precio fijo y no admite descuentos adicionales.',
   'unknown-code': 'Ese código de descuento no existe. Revísalo o inscríbete sin código.',
-  'no-payment-qr': 'Todavía no hay QR de pago para esta preventa. Escríbenos por WhatsApp.',
+  'no-payment-qr': 'El QR de pago no está disponible. Escríbenos por WhatsApp.',
   'duplicate-cedula':
     'Ya hay una inscripción con esa cédula. Si crees que es un error, escríbenos por WhatsApp.',
   'receipt-missing': 'No encontramos tu comprobante. Vuelve a subirlo.',

@@ -6,9 +6,9 @@ import type { PaymentQr } from '@/domain/registration/payment';
 
 import { discountCodeSchema, phaseQrsSchema } from '@/domain/registration/payment';
 
-import qr10kDiscount from './qr-descuento/10k.webp';
-import qr3kDiscount from './qr-descuento/3k.webp';
-import qr5kDiscount from './qr-descuento/5k.webp';
+import qr10kDiscount from './qr-descuento/10k.png';
+import qr3kDiscount from './qr-descuento/3k.png';
+import qr5kDiscount from './qr-descuento/5k.png';
 import qr7kDiscount from './qr-descuento/7k.webp';
 
 /**
@@ -47,22 +47,18 @@ export const discountCodes = z.array(discountCodeSchema).parse([
 ]);
 
 /**
- * QR por fase. Los montos salen de decodificar cada QR (campo 54 del formato
- * EMVCo, moneda 170 = COP) el 2026-09-28; si se cambia una imagen hay que
- * cambiar su monto. La prueba de contenido compara el precio lleno con
- * `pricing.ts`.
- *
- * Solo hay QR para la preventa 2. Cuando empiece la 3 (1 de noviembre) hay que
- * agregar los suyos: sin ellos el formulario no cobra, a proposito.
+ * QR de la venta vigente hasta el 20 de noviembre. Cada monto debe coincidir
+ * con el valor cargado en su QR. La prueba de contenido compara el precio
+ * lleno con `pricing.ts`.
  */
 export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
   'preventa-2': {
     '3k-infantil': {
-      normal: { image: '/qr/3k-normal.webp', amount: 90_000 },
+      normal: { image: '/qr/3k-normal.png', amount: 90_000 },
       discount: { image: urlOf(qr3kDiscount), amount: 80_000 },
     },
     '5k': {
-      normal: { image: '/qr/5k-normal.webp', amount: 120_000 },
+      normal: { image: '/qr/5k-normal.png', amount: 120_000 },
       discount: { image: urlOf(qr5kDiscount), amount: 108_000 },
     },
     '7k': {
@@ -70,7 +66,7 @@ export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
       discount: { image: urlOf(qr7kDiscount), amount: 126_000 },
     },
     '10k': {
-      normal: { image: '/qr/10k-normal.webp', amount: 160_000 },
+      normal: { image: '/qr/10k-normal.png', amount: 160_000 },
       discount: { image: urlOf(qr10kDiscount), amount: 144_000 },
     },
   },

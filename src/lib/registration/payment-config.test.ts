@@ -11,6 +11,47 @@ import { quote } from '@/lib/registration/service';
 import type { DistanceId } from '@/domain/event/schema';
 
 describe('pago por QR', () => {
+  it.each([
+    ['3k-infantil', 90_000, 80_000],
+    ['5k', 120_000, 108_000],
+    ['10k', 160_000, 144_000],
+  ] as const)(
+    'mantiene precios y QR de %s hasta el 20 de noviembre inclusive',
+    (distance, normal, discount) => {
+      for (const now of [new Date('2026-11-01T05:00:00Z'), new Date('2026-11-21T04:59:59.999Z')]) {
+        expect(quote(distance, null, now)).toMatchObject({
+          ok: true,
+          price: { total: normal, qr: { amount: normal } },
+        });
+        expect(quote(distance, 'VALECORRE', now)).toMatchObject({
+          ok: true,
+          price: { total: discount, qr: { amount: discount } },
+        });
+      }
+      expect(quote(distance, null, new Date('2026-11-21T05:00:00Z'))).toEqual({
+        ok: false,
+        reason: 'registration-closed',
+      });
+    },
+  );
+
+  it.each([
+    ['5k', 100_000],
+    ['10k', 130_000],
+  ] as const)(
+    'cierra tambien la venta sin camiseta de %s en hora de Colombia',
+    (distance, amount) => {
+      expect(quote(distance, null, new Date('2026-11-21T04:59:59.999Z'), false)).toMatchObject({
+        ok: true,
+        price: { total: amount, qr: { amount } },
+      });
+      expect(quote(distance, null, new Date('2026-11-21T05:00:00Z'), false)).toEqual({
+        ok: false,
+        reason: 'registration-closed',
+      });
+    },
+  );
+
   it('el QR normal cobra exactamente el precio de su preventa', () => {
     for (const [phaseId, byDistance] of Object.entries(paymentQrsByPhase)) {
       const phase = presalePhases.find((candidate) => candidate.id === phaseId);
