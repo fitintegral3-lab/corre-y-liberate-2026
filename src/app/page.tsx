@@ -17,9 +17,8 @@ import { buildEventJsonLd, buildOrganizationJsonLd } from '@/lib/seo/json-ld';
 /**
  * La pagina se prerenderiza y se revalida cada hora.
  *
- * El contenido es estatico salvo por un dato que depende del calendario: cual
- * preventa esta vigente. Una hora es suficiente para que el cambio de fase se
- * refleje solo, sin redesplegar y sin renderizar en cada visita.
+ * El contenido es estatico salvo por el cierre de inscripciones. La revalidacion
+ * permite reflejar el cierre sin redesplegar ni renderizar en cada visita.
  */
 export const revalidate = 3600;
 

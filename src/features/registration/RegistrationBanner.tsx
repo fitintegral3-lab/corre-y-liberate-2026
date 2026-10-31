@@ -7,10 +7,8 @@ import { formatLongDate } from '@/lib/format';
 /**
  * Banda de inscripciones abiertas.
  *
- * La fecha limite sale de la fase de preventa vigente en vez de estar escrita
- * a mano: cuando cierra una fase, el texto pasa a anunciar la siguiente solo.
- * Si ya no queda ninguna abierta la banda no se renderiza, porque prometer un
- * precio que ya no se puede pagar es peor que no decir nada.
+ * La fecha limite sale del periodo de venta. Al cerrar las inscripciones,
+ * la banda deja de anunciar cupos disponibles.
  */
 export function RegistrationBanner() {
   const phase = currentPresalePhase(presalePhases);
@@ -27,9 +25,9 @@ export function RegistrationBanner() {
           {registrationBanner.title}
         </h2>
         <p className="mx-auto max-w-2xl font-athletic-semibold text-sm text-neutral-200 sm:text-base lg:text-lg">
-          Aprovecha los{' '}
+          Inscríbete{' '}
           <span className="font-bold text-brand-orange">
-            precios especiales hasta el {formatLongDate(phase.endsOn)}
+            hasta el {formatLongDate(phase.endsOn)}
           </span>{' '}
           y asegura tu lugar en la línea de salida.
         </p>

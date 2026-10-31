@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     'Inscríbete a Corre y Libérate 2026: elige tu distancia, paga con QR y sube tu comprobante.',
 };
 
-/** La preventa vigente y sus QR cambian con el calendario. */
+/** La disponibilidad depende de la fecha de cierre de las inscripciones. */
 export const revalidate = 3600;
 
 /**
@@ -32,8 +32,7 @@ export default function InscripcionPage() {
   const config = supabaseConfig();
   if (!config || !receiptsConfig()) notFound();
 
-  // Las opciones sin camiseta pueden seguir disponibles aunque una nueva
-  // preventa todavía no tenga QR con camiseta.
+  // Revisar ambas opciones de camiseta antes de bloquear el formulario.
   const probes = distances
     .filter((distance) => !distance.soldOut)
     .flatMap((distance) => [

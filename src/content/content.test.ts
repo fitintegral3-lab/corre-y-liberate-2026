@@ -10,9 +10,15 @@ import { priceFor } from '@/domain/event/selectors';
  * El esquema de zod valida cada pieza por separado —que un precio sea entero,
  * que una fecha exista—. Esto valida lo que solo se ve mirando todo junto: que
  * las piezas encajen entre si. Es lo que atrapa el error tipico de agregar una
- * distancia y olvidar ponerle precio en una de las tres preventas.
+ * distancia y olvidar ponerle precio en la venta vigente.
  */
 describe('distancias', () => {
+  it('anuncia los horarios de salida confirmados', () => {
+    const starts = Object.fromEntries(
+      distances.map((distance) => [distance.id, distance.startTime]),
+    );
+    expect(starts).toMatchObject({ '10k': '6:00 am', '5k': '6:10 am', '3k-infantil': '6:20 am' });
+  });
   it('no repite ids', () => {
     const ids = distances.map((distance) => distance.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -41,7 +47,11 @@ describe('premiacion', () => {
   });
 });
 
-describe('preventas', () => {
+describe('inscripciones', () => {
+  it('tiene un unico periodo de venta hasta el 20 de noviembre', () => {
+    expect(presalePhases).toHaveLength(1);
+    expect(presalePhases[0].endsOn).toBe('2026-11-20');
+  });
   it('le pone precio a todas las distancias en todas las fases', () => {
     for (const phase of presalePhases) {
       for (const distance of distances) {

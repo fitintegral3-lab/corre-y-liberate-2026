@@ -47,13 +47,9 @@ export const discountCodes = z.array(discountCodeSchema).parse([
 ]);
 
 /**
- * QR por fase. Los montos salen de decodificar cada QR (campo 54 del formato
- * EMVCo, moneda 170 = COP) el 2026-09-28; si se cambia una imagen hay que
- * cambiar su monto. La prueba de contenido compara el precio lleno con
- * `pricing.ts`.
- *
- * Solo hay QR para la preventa 2. Cuando empiece la 3 (1 de noviembre) hay que
- * agregar los suyos: sin ellos el formulario no cobra, a proposito.
+ * QR de la venta vigente hasta el 20 de noviembre. Cada monto debe coincidir
+ * con el valor cargado en su QR. La prueba de contenido compara el precio
+ * lleno con `pricing.ts`.
  */
 export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
   'preventa-2': {
