@@ -6,9 +6,9 @@ import type { PaymentQr } from '@/domain/registration/payment';
 
 import { discountCodeSchema, phaseQrsSchema } from '@/domain/registration/payment';
 
-import qr10kDiscount from './qr-descuento/10k.webp';
-import qr3kDiscount from './qr-descuento/3k.webp';
-import qr5kDiscount from './qr-descuento/5k.webp';
+import qr10kDiscount from './qr-descuento/10k.png';
+import qr3kDiscount from './qr-descuento/3k.png';
+import qr5kDiscount from './qr-descuento/5k.png';
 import qr7kDiscount from './qr-descuento/7k.webp';
 
 /**
@@ -58,11 +58,11 @@ export const discountCodes = z.array(discountCodeSchema).parse([
 export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
   'preventa-2': {
     '3k-infantil': {
-      normal: { image: '/qr/3k-normal.webp', amount: 90_000 },
+      normal: { image: '/qr/3k-normal.png', amount: 90_000 },
       discount: { image: urlOf(qr3kDiscount), amount: 80_000 },
     },
     '5k': {
-      normal: { image: '/qr/5k-normal.webp', amount: 120_000 },
+      normal: { image: '/qr/5k-normal.png', amount: 120_000 },
       discount: { image: urlOf(qr5kDiscount), amount: 108_000 },
     },
     '7k': {
@@ -70,7 +70,7 @@ export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
       discount: { image: urlOf(qr7kDiscount), amount: 126_000 },
     },
     '10k': {
-      normal: { image: '/qr/10k-normal.webp', amount: 160_000 },
+      normal: { image: '/qr/10k-normal.png', amount: 160_000 },
       discount: { image: urlOf(qr10kDiscount), amount: 144_000 },
     },
   },
