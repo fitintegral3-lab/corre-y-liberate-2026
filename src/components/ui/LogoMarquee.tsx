@@ -14,10 +14,8 @@ interface LogoMarqueeProps {
 }
 
 /**
- * Logos por mitad de pista. Con 8 logos de 260px la mitad mide unos 2100px y
- * cubre una pantalla ancha; con menos, al final de la vuelta se veria un hueco
- * antes de que entre la segunda mitad. Por eso una lista corta se repite hasta
- * llegar a este numero.
+ * Repeticiones iniciales antes de medir el carrusel en el navegador.
+ * Despues cada mitad se ajusta al ancho real, incluso en pantallas ultrawide.
  */
 const MIN_LOGOS_PER_HALF = 8;
 
@@ -41,6 +39,8 @@ interface MarqueeGesture {
 export function LogoMarquee({ items }: LogoMarqueeProps) {
   const [selected, setSelected] = useState<LinkedLogo | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const gestureRef = useRef<MarqueeGesture | null>(null);
   const suppressClickRef = useRef(false);
@@ -49,10 +49,30 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
   const [keyboardFocus, setKeyboardFocus] = useState(false);
   const titleId = useId();
 
-  const repeatsPerHalf = Math.ceil(MIN_LOGOS_PER_HALF / items.length);
+  const [repeatsPerHalf, setRepeatsPerHalf] = useState(() =>
+    Math.ceil(MIN_LOGOS_PER_HALF / items.length),
+  );
   const copies = repeatsPerHalf * 2;
   const durationMs = repeatsPerHalf * items.length * SECONDS_PER_LOGO * 1000;
   const paused = pointerDown || mouseOver || keyboardFocus || selected !== null;
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const list = listRef.current;
+    if (!viewport || !list) return;
+
+    // Cada mitad debe cubrir todo el viewport hasta el ultimo instante del
+    // loop. Medir una lista evita depender del numero de clubes o de un ancho
+    // de pantalla supuesto; tambien responde a cambios de tamano y zoom.
+    const observer = new ResizeObserver(() => {
+      const listWidth = list.getBoundingClientRect().width;
+      if (!listWidth) return;
+      setRepeatsPerHalf(Math.max(1, Math.ceil(viewport.clientWidth / listWidth)));
+    });
+    observer.observe(viewport);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [items.length]);
 
   function startGesture(event: PointerEvent<HTMLDivElement>) {
     if (!event.isPrimary || event.button !== 0 || gestureRef.current) return;
@@ -109,6 +129,7 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
   return (
     <>
       <div
+        ref={viewportRef}
         className="mt-12 w-full touch-pan-y cursor-grab overflow-hidden select-none active:cursor-grabbing [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)] sm:mt-16 motion-reduce:cursor-auto motion-reduce:[mask-image:none]"
         onPointerDown={startGesture}
         onPointerMove={moveGesture}
@@ -163,6 +184,7 @@ export function LogoMarquee({ items }: LogoMarqueeProps) {
             return (
               <ul
                 key={copy}
+                ref={isCopy ? undefined : listRef}
                 aria-hidden={isCopy || undefined}
                 className={`flex shrink-0 items-center motion-reduce:w-full motion-reduce:flex-wrap motion-reduce:justify-center ${isCopy ? 'motion-reduce:hidden' : ''}`}
               >
