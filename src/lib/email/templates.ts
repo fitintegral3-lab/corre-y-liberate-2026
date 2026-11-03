@@ -124,3 +124,46 @@ export function paymentRejectedEmail(data: RegistrationEmailData): EmailMessage 
     ]),
   };
 }
+
+export type OrganizationNotice = 'received' | 'approved' | 'rejected';
+
+/** El aviso interno distingue un comprobante recibido de un pago ya aprobado. */
+export function organizationPaymentEmail(
+  kind: OrganizationNotice,
+  data: RegistrationEmailData & { email: string },
+): EmailMessage {
+  const notices = {
+    received: {
+      title: 'Nueva inscripción por revisar',
+      detail: 'Se recibió una inscripción con comprobante. El pago está pendiente de revisión.',
+    },
+    approved: {
+      title: 'Pago aprobado',
+      detail: 'El pago de esta inscripción fue aprobado por la organización.',
+    },
+    rejected: {
+      title: 'Pago rechazado',
+      detail: 'El pago de esta inscripción fue rechazado por la organización.',
+    },
+  };
+  const notice = notices[kind];
+  const summary = summaryLines(data);
+  return {
+    subject: `${notice.title} · ${eventName}`,
+    text: [
+      notice.detail,
+      '',
+      `Participante: ${data.firstName}`,
+      `Correo del participante: ${data.email}`,
+      ...summary.text,
+      '',
+      'Consulta los datos y el comprobante en el panel de revisión de inscripciones.',
+    ].join('\n'),
+    html: layout(notice.title, [
+      notice.detail,
+      `<strong>Participante:</strong> ${escape(data.firstName)}<br><strong>Correo:</strong> ${escape(data.email)}`,
+      ...summary.html,
+      'Consulta los datos y el comprobante en el panel de revisión de inscripciones.',
+    ]),
+  };
+}

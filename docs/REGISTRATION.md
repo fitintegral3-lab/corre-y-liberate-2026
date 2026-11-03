@@ -114,6 +114,14 @@ en Supabase, que es la fuente de verdad. El error queda en el log con el id de l
 
 ## Correos al corredor
 
+La organización también recibe un aviso separado en **fitintegral3@gmail.com**
+al recibir una inscripción con comprobante y cuando el pago pasa a aprobado o
+rechazado. El aviso incluye nombre, correo, carrera, valor y código de descuento.
+Un comprobante recibido se anuncia como **pendiente de revisión**, no como pago
+confirmado. Ambos destinatarios se procesan de forma independiente: un error del
+buzón del participante no impide el aviso interno, ni viceversa. Un fallo de
+envío queda registrado en los logs; no se reenvía automáticamente.
+
 Tres correos, enviados desde el Gmail de la organización (`GMAIL_USER`) con una contraseña de aplicación
 (`GMAIL_APP_PASSWORD`). Gmail personal permite unos 500 por día.
 

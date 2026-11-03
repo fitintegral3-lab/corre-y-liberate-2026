@@ -1,8 +1,7 @@
 import { after } from 'next/server';
 
 import { emailConfig } from '@/lib/email/config';
-import { sendEmail } from '@/lib/email/send';
-import { registrationReceivedEmail } from '@/lib/email/templates';
+import { sendRegistrationNotifications } from '@/lib/email/notifications';
 import { receiptsConfig } from '@/lib/gcs/receipts';
 import { submitRegistration } from '@/lib/registration/service';
 import { appendRegistration } from '@/lib/sheets/append';
@@ -37,27 +36,16 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  // El correo de "recibimos tu inscripcion" sale igual despues de responder:
-  // si Gmail falla, la inscripcion ya quedo guardada y el error queda en el log.
+  // Los avisos al participante y a la organizacion salen despues de guardar.
   const mail = emailConfig();
   if (mail) {
     const { record } = result;
     after(() =>
-      sendEmail(
-        mail,
-        record.email,
-        registrationReceivedEmail({
-          firstName: record.firstName,
-          category: record.category,
-          total: record.total,
-          referralCode: record.referralCode,
-        }),
-      ).catch((error: unknown) => {
-        console.error(
-          '[correo] no se envio la confirmacion de',
-          result.id,
-          (error as Error).message,
-        );
+      sendRegistrationNotifications(mail, record.email, {
+        firstName: record.firstName,
+        category: record.category,
+        total: record.total,
+        referralCode: record.referralCode,
       }),
     );
   }
