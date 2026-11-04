@@ -10,7 +10,7 @@ import type { EmailConfig } from '@/lib/email/config';
 import type { OrganizationNotice, RegistrationEmailData } from '@/lib/email/templates';
 
 /** Destinatario de los avisos internos confirmado por la organización. */
-const ORGANIZATION_EMAIL = 'fitintegral3@gmail.com';
+export const ORGANIZATION_EMAIL = 'fitintegral3@gmail.com';
 
 /** Un rechazo del buzón del participante no debe impedir el aviso interno. */
 export async function sendRegistrationNotifications(

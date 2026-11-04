@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckCircle2 } from 'lucide-react';
-import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 
 import {
   registrationErrors,
@@ -10,9 +10,10 @@ import {
   type RegistrationErrorReason,
 } from '@/content';
 import { supportsWithoutShirt, withoutShirtPrices } from '@/content/without-shirt';
-import { BLOOD_TYPES, SHIRT_SIZES } from '@/domain/registration/schema';
+import { BLOOD_TYPES, SHIRT_SIZES, cedulaSchema } from '@/domain/registration/schema';
 import { RouteButton } from '@/features/routes/RouteButton';
 import { formatCop } from '@/lib/format';
+import type { ShirtReservation, ShirtStock } from '@/lib/registration/shirt-inventory';
 
 import { birthDateFromParts } from './birth-date';
 import { BirthDateFields } from './BirthDateFields';
@@ -64,6 +65,14 @@ function isReason(value: unknown): value is RegistrationErrorReason {
 export function RegistrationForm({ distances }: RegistrationFormProps) {
   const [distanceId, setDistanceId] = useState('');
   const [includesShirt, setIncludesShirt] = useState(true);
+  const [gender, setGender] = useState('');
+  const [shirtSize, setShirtSize] = useState('');
+  const [stock, setStock] = useState<ShirtStock[] | null>(null);
+  const [stockError, setStockError] = useState(false);
+  const [cedula, setCedula] = useState('');
+  const [reservation, setReservation] = useState<ShirtReservation | null>(null);
+  const [reservationPending, setReservationPending] = useState(false);
+  const [reservationError, setReservationError] = useState(false);
   const quoteRequest = useRef(0);
   const [codeInput, setCodeInput] = useState('');
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -74,6 +83,80 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
   const [sending, setSending] = useState(false);
   const [uploaded, setUploaded] = useState<{ file: File; path: string } | null>(null);
   const [done, setDone] = useState<{ total: number; category: string } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function refresh() {
+      try {
+        const response = await fetch('/api/inscripcion/camisetas', { cache: 'no-store' });
+        const body = await response.json();
+        if (!response.ok || !body.ok) throw new Error('stock unavailable');
+        if (active) {
+          setStock(body.stock);
+          setStockError(false);
+        }
+      } catch {
+        if (active) {
+          setStock(null);
+          setStockError(true);
+        }
+      }
+    }
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 30_000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
+
+  useEffect(() => {
+    const parsed = cedulaSchema.safeParse(cedula);
+    if (!parsed.success) return;
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch('/api/inscripcion/camisetas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cedula: parsed.data }),
+        });
+        const body = await response.json();
+        if (!response.ok || !body.ok) throw new Error('reservation unavailable');
+        if (active) {
+          setReservation(body.reservation);
+          if (body.reservation) {
+            setGender(body.reservation.gender);
+            setShirtSize(body.reservation.shirtSize);
+          }
+          setReservationError(false);
+        }
+      } catch {
+        if (active) setReservationError(true);
+      } finally {
+        if (active) setReservationPending(false);
+      }
+    }, 400);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [cedula]);
+
+  function sizeAvailable(size: string) {
+    return (
+      (reservation?.gender === gender && reservation.shirtSize === size) ||
+      Boolean(
+        stock?.some(
+          (item) => item.gender === gender && item.shirtSize === size && item.available > 0,
+        ),
+      )
+    );
+  }
+  const shirtAvailable =
+    !includesShirt || (!reservationPending && !reservationError && sizeAvailable(shirtSize));
 
   async function loadQuote(
     nextDistance: string,
@@ -162,6 +245,10 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
     event.preventDefault();
     setFormError(null);
     setFieldErrors({});
+    if (!shirtAvailable) {
+      setFormError(stockError ? 'unavailable' : 'shirt-sold-out');
+      return;
+    }
     if (!quote || quote.distanceId !== distanceId || quote.includesShirt !== includesShirt) {
       setFormError(quoteError ?? 'unavailable');
       return;
@@ -281,14 +368,71 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
             ))}
           </div>
         </Field>
+        <Field
+          label="Cédula *"
+          hint="Una inscripción por cédula. Si ya tienes camiseta reservada, la reconoceremos aquí."
+          error={error('cedula')}
+          htmlFor="cedula"
+        >
+          <input
+            id="cedula"
+            name="cedula"
+            inputMode="numeric"
+            className={inputClass}
+            value={cedula}
+            onChange={(event) => {
+              setCedula(event.target.value);
+              setReservation(null);
+              setReservationPending(cedulaSchema.safeParse(event.target.value).success);
+              setReservationError(false);
+            }}
+            aria-invalid={Boolean(error('cedula'))}
+          />
+          {reservationPending && (
+            <p role="status" className="mt-2 text-sm text-neutral-600">
+              Consultando si tienes una camiseta reservada…
+            </p>
+          )}
+          {reservation && (
+            <p role="status" className="mt-2 text-sm text-green-700">
+              Tienes una camiseta reservada: {reservation.gender}, {reservation.shirtSize}. Al
+              elegir esa opción, tu inscripción usa la reserva.
+            </p>
+          )}
+          {reservationError && (
+            <p role="alert" className="mt-2 text-sm text-red-700">
+              No pudimos consultar tu reserva. Vuelve a ingresar tu cédula para intentarlo de nuevo.
+            </p>
+          )}
+        </Field>
         <Field label="Género *" error={error('gender')} as="fieldset">
           <div className="grid grid-cols-2 gap-3">
             <label className={choiceClass}>
-              <input type="radio" name="gender" value="femenino" className={styles.radio} />
+              <input
+                type="radio"
+                name="gender"
+                value="femenino"
+                checked={gender === 'femenino'}
+                className={styles.radio}
+                onChange={() => {
+                  setGender('femenino');
+                  setShirtSize('');
+                }}
+              />
               Femenino
             </label>
             <label className={choiceClass}>
-              <input type="radio" name="gender" value="masculino" className={styles.radio} />
+              <input
+                type="radio"
+                name="gender"
+                value="masculino"
+                checked={gender === 'masculino'}
+                className={styles.radio}
+                onChange={() => {
+                  setGender('masculino');
+                  setShirtSize('');
+                }}
+              />
               Masculino
             </label>
           </div>
@@ -323,19 +467,40 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
             <select
               id="shirtSize"
               name="shirtSize"
-              defaultValue=""
+              value={shirtSize}
+              onChange={(event) => setShirtSize(event.target.value)}
+              disabled={!gender || (!stock && !reservation)}
               className={inputClass}
               aria-invalid={Boolean(error('shirtSize'))}
             >
               <option value="" disabled>
-                Elige una talla
+                {!gender
+                  ? 'Elige primero el género'
+                  : !stock && !reservation
+                    ? 'Consultando tallas…'
+                    : 'Elige una talla'}
               </option>
               {SHIRT_SIZES.map((size) => (
-                <option key={size} value={size}>
+                <option key={size} value={size} disabled={!sizeAvailable(size)}>
                   {size}
+                  {gender && (stock || reservation) && !sizeAvailable(size)
+                    ? ' · Agotada'
+                    : reservation?.gender === gender && reservation.shirtSize === size
+                      ? ' · Tu reserva'
+                      : ''}
                 </option>
               ))}
             </select>
+            {stockError && (
+              <p role="alert" className="mt-2 text-sm text-red-700">
+                No pudimos consultar las tallas. Volveremos a intentarlo automáticamente.
+              </p>
+            )}
+            {shirtSize && !sizeAvailable(shirtSize) && stock && (
+              <p role="alert" className="mt-2 text-sm text-red-700">
+                Esta talla se acaba de agotar. Elige otra antes de pagar.
+              </p>
+            )}
           </Field>
         )}
         <Field label="Equipo o club" error={error('team')} htmlFor="team">
@@ -383,20 +548,6 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
               className={inputClass}
               autoComplete="tel-national"
               aria-invalid={Boolean(error('phone'))}
-            />
-          </Field>
-          <Field
-            label="Cédula *"
-            hint="Una inscripción por cédula"
-            error={error('cedula')}
-            htmlFor="cedula"
-          >
-            <input
-              id="cedula"
-              name="cedula"
-              inputMode="numeric"
-              className={inputClass}
-              aria-invalid={Boolean(error('cedula'))}
             />
           </Field>
           <BirthDateFields error={error('birthDate')} />
@@ -541,17 +692,26 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
               </p>
             )}
 
-            {quote && quote.distanceId === distanceId && quote.includesShirt === includesShirt && (
-              <QrPayment
-                qrImage={quote.qrImage}
-                distanceId={quote.distanceId}
-                total={quote.total}
-                basePrice={quote.basePrice}
-                discount={quote.discount}
-                code={quote.code}
-                includesShirt={quote.includesShirt}
-              />
+            {includesShirt && !shirtAvailable && (
+              <p className="text-sm text-neutral-600">
+                Elige un género y una talla disponible para ver el QR de pago. La camiseta se
+                reserva al enviar la inscripción.
+              </p>
             )}
+            {shirtAvailable &&
+              quote &&
+              quote.distanceId === distanceId &&
+              quote.includesShirt === includesShirt && (
+                <QrPayment
+                  qrImage={quote.qrImage}
+                  distanceId={quote.distanceId}
+                  total={quote.total}
+                  basePrice={quote.basePrice}
+                  discount={quote.discount}
+                  code={quote.code}
+                  includesShirt={quote.includesShirt}
+                />
+              )}
 
             <Field
               label="Comprobante de pago *"
@@ -606,6 +766,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
         type="submit"
         disabled={
           sending ||
+          !shirtAvailable ||
           !quote ||
           quote.distanceId !== distanceId ||
           quote.includesShirt !== includesShirt

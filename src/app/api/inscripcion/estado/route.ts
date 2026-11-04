@@ -3,6 +3,8 @@ import { after } from 'next/server';
 import { emailConfig } from '@/lib/email/config';
 import { sendRegistrationNotifications } from '@/lib/email/notifications';
 import { secretMatches, statusEmailFor } from '@/lib/email/status-change';
+import { tryShirtStockAlerts } from '@/lib/email/shirt-stock';
+import { supabaseConfig } from '@/lib/supabase/config';
 
 /**
  * Recibe el aviso de Supabase cuando cambia una inscripcion y, si el pago
@@ -20,6 +22,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const email = statusEmailFor(await request.json().catch(() => null));
   const config = emailConfig();
+  const db = supabaseConfig();
+  if (db && config) after(() => tryShirtStockAlerts(db, config));
   if (email && config) {
     // Se responde enseguida y el correo sale despues: el aviso de Supabase
     // tiene un tiempo de espera corto y Gmail puede tardar.
