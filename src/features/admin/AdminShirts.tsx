@@ -192,7 +192,7 @@ function ReservationRow({
               ? 'YA INSCRITA'
               : busy
                 ? 'GUARDANDO…'
-                : cedula.trim()
+                : cedula.trim() || !slot.cedula
                   ? 'ASIGNAR CÉDULA'
                   : 'RETIRAR CÉDULA'}
           </button>
