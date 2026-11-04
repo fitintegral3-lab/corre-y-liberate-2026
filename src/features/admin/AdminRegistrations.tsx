@@ -4,12 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { formatCop } from '@/lib/format';
+import { AdminPendingShirt } from '@/features/admin/AdminShirts';
+import type { ShirtStock } from '@/lib/registration/shirt-inventory';
 
 import type { AdminRegistration, PaymentStatus } from '@/lib/admin/registrations';
 
 interface Props {
   slug: string;
   registrations: AdminRegistration[];
+  stock: ShirtStock[];
 }
 
 const STATUS_STYLE: Record<PaymentStatus, string> = {
@@ -26,7 +29,7 @@ const SHEET_NOTE = {
 } as const;
 
 /** Lista de inscripciones con su comprobante y los botones para aprobar o rechazar. */
-export function AdminRegistrations({ slug, registrations }: Props) {
+export function AdminRegistrations({ slug, registrations, stock }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -126,6 +129,13 @@ export function AdminRegistrations({ slug, registrations }: Props) {
                   </span>
                 )}
               </p>
+              <p className="text-sm text-neutral-700">
+                Camiseta: <strong>{registration.shirtSize}</strong>
+              </p>
+              {registration.paymentStatus === 'pendiente' &&
+                registration.shirtSize !== 'Sin camiseta' && (
+                  <AdminPendingShirt slug={slug} registration={registration} stock={stock} />
+                )}
               <p className="text-xs text-neutral-500">
                 Inscrito el{' '}
                 {new Date(registration.createdAt).toLocaleString('es-CO', {

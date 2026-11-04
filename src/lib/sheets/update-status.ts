@@ -17,7 +17,6 @@ export function columnLetter(index: number): string {
 
 // Las columnas salen de los encabezados y no se escriben a mano: si se agrega
 // una columna antes, estas letras se corren solas.
-const STATUS_COLUMN = columnLetter(SHEET_HEADERS.indexOf('Estado pago'));
 const ID_COLUMN = columnLetter(SHEET_HEADERS.indexOf('ID'));
 
 const a1 = (tab: string, range: string) => `'${tab.replace(/'/g, "''")}'!${range}`;
@@ -27,10 +26,11 @@ const a1 = (tab: string, range: string) => `'${tab.replace(/'/g, "''")}'!${range
  * Devuelve `false` si la fila no esta (por ejemplo, una inscripcion de antes
  * de la copia a Drive): la base es la fuente de verdad y no se inventa la fila.
  */
-export async function updateSheetStatus(
+async function updateSheetField(
   config: SheetsConfig,
   id: string,
-  status: string,
+  field: 'Estado pago' | 'Talle de camiseta',
+  value: string,
 ): Promise<boolean> {
   const token = await accessToken(config.account, [SCOPE]);
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -46,15 +46,31 @@ export async function updateSheetStatus(
   const rowIndex = (values ?? []).findIndex((row) => row[0] === id);
   if (rowIndex < 0) return false;
 
-  const cell = a1(config.tab, `${STATUS_COLUMN}${rowIndex + 1}`);
+  const cell = a1(config.tab, `${columnLetter(SHEET_HEADERS.indexOf(field))}${rowIndex + 1}`);
   const update = await fetch(`${base}/${encodeURIComponent(cell)}?valueInputOption=RAW`, {
     method: 'PUT',
     headers,
-    body: JSON.stringify({ range: cell, majorDimension: 'ROWS', values: [[status]] }),
+    body: JSON.stringify({ range: cell, majorDimension: 'ROWS', values: [[value]] }),
   });
   if (!update.ok)
     throw new Error(
-      `Sheets respondio ${update.status} al cambiar el estado: ${await update.text()}`,
+      `Sheets respondio ${update.status} al cambiar ${field}: ${await update.text()}`,
     );
   return true;
+}
+
+export function updateSheetStatus(
+  config: SheetsConfig,
+  id: string,
+  status: string,
+): Promise<boolean> {
+  return updateSheetField(config, id, 'Estado pago', status);
+}
+
+export function updateSheetShirtSize(
+  config: SheetsConfig,
+  id: string,
+  size: string,
+): Promise<boolean> {
+  return updateSheetField(config, id, 'Talle de camiseta', size);
 }
