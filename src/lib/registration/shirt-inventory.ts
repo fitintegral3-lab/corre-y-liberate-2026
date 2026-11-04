@@ -34,19 +34,6 @@ export async function findShirtReservation(
     : null;
 }
 
-export async function shirtReservationSummary(config: SupabaseConfig) {
-  const { data, error } = await supabaseAdmin(config)
-    .from('shirt_reservations')
-    .select('gender, shirt_size, cedula')
-    .eq('edition', event.edition);
-  if (error) throw new Error(`No se pudieron leer las reservas: ${error.message}`);
-  return (data ?? []).map((row) => ({
-    gender: row.gender as string,
-    shirtSize: row.shirt_size as string,
-    assigned: Boolean(row.cedula),
-  }));
-}
-
 export async function listShirtStock(config: SupabaseConfig): Promise<ShirtStock[]> {
   const { data, error } = await supabaseAdmin(config)
     .from('shirt_inventory')

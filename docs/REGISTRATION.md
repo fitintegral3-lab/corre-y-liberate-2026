@@ -161,6 +161,19 @@ En la página de administración, `/p/<ADMIN_SLUG>`:
   hoja (inscripción anterior a la copia a Drive) se avisa y no se inventa.
 - **Comparar el monto del comprobante con el valor a pagar**: una inscripción sin código tiene que haber
   pagado el precio lleno, aunque alguien le haya pasado el QR con descuento.
+- **Cambiar talla antes de aprobar**: las inscripciones pendientes que incluyen
+  camiseta muestran la talla actual y un selector de tallas disponibles de su
+  género. «Guardar talla» devuelve la anterior y reserva la nueva en la misma
+  transacción, actualiza la columna «Talle de camiseta» en Drive y comprueba de
+  nuevo el stock en la base. Si otro administrador ya cambió el pago o la talla,
+  se informa del conflicto. No permite añadir/quitar camiseta ni modificar el
+  precio; las inscripciones sin camiseta conservan su opción pagada.
+- **Gestionar las reservas externas**: expandir esa sección, elegir una fila del
+  género y talla reservados y asignar la cédula de una persona aún no inscrita.
+  También se puede corregir o retirar la cédula antes de que se inscriba, sin
+  borrar la reserva ni aumentar el saldo público. Las filas ya utilizadas se
+  bloquean. No se crean camisetas adicionales ni se cambia la distribución
+  de las veinte reservas desde este panel.
 
 También se puede cambiar el estado desde Supabase > Table Editor > `registrations`; el correo sale igual,
 pero la hoja **no** se actualiza por ese camino.
@@ -251,9 +264,11 @@ La organización confirmó que estas personas deben poder inscribirse **sin
 descontar otra vez el saldo verde**. La migración crea veinte filas en
 `shirt_reservations` con el género y la talla de la tabla anterior, inicialmente
 sin cédula. **Falta la lista de cédulas para asignarlas.** Antes de que estas
-personas se inscriban, llenar `cedula` en su fila correspondiente en Supabase >
-Table Editor > `shirt_reservations`. Usar cédulas normalizadas, sin puntos,
-espacios ni guiones. No asignar reservas a personas ya inscritas: la base rechaza
+personas se inscriban, asignar su cédula desde «Gestionar las reservas externas»
+en administración, en la fila del género y talla correspondientes. El servidor
+normaliza puntos, espacios y guiones. También se puede llenar `cedula` directamente
+en Supabase > Table Editor > `shirt_reservations`, ya normalizada.
+No asignar reservas a personas ya inscritas: la base rechaza
 esa operación para evitar modificar retrospectivamente el saldo.
 
 El corredor ingresa primero su cédula. El formulario la consulta por POST (no

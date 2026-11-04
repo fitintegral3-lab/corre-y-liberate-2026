@@ -5,10 +5,12 @@ import { after } from 'next/server';
 
 import { Container } from '@/components/ui';
 import { AdminRegistrations } from '@/features/admin/AdminRegistrations';
+import { AdminShirtReservations } from '@/features/admin/AdminShirts';
+import { listShirtReservations } from '@/lib/admin/shirts';
 import { adminAllowed } from '@/lib/admin/auth';
 import { listRegistrations, PAYMENT_STATUSES, type PaymentStatus } from '@/lib/admin/registrations';
 import { supabaseConfig } from '@/lib/supabase/config';
-import { listShirtStock, shirtReservationSummary } from '@/lib/registration/shirt-inventory';
+import { listShirtStock } from '@/lib/registration/shirt-inventory';
 import { SHIRT_SIZES } from '@/domain/registration/schema';
 import { emailConfig } from '@/lib/email/config';
 import { tryShirtStockAlerts } from '@/lib/email/shirt-stock';
@@ -39,9 +41,11 @@ export default async function AdminPage({ params, searchParams }: PageProps) {
   const status = FILTERS.includes(raw as PaymentStatus)
     ? (raw as PaymentStatus | 'todos')
     : 'pendiente';
-  const registrations = await listRegistrations(config, status);
-  const stock = await listShirtStock(config);
-  const holds = await shirtReservationSummary(config);
+  const [registrations, stock, holds] = await Promise.all([
+    listRegistrations(config, status),
+    listShirtStock(config),
+    listShirtReservations(config),
+  ]);
   const mail = emailConfig();
   if (mail) after(() => tryShirtStockAlerts(config, mail));
 
@@ -122,6 +126,16 @@ export default async function AdminPage({ params, searchParams }: PageProps) {
           )}
         </section>
 
+        <details className="rounded-2xl bg-white p-4 shadow-sm">
+          <summary className="cursor-pointer font-semibold">
+            Gestionar las {holds.length} reservas externas ·{' '}
+            {holds.filter((hold) => !hold.assigned).length} sin cédula
+          </summary>
+          <div className="mt-4">
+            <AdminShirtReservations slug={slug} slots={holds} />
+          </div>
+        </details>
+
         <nav className="flex flex-wrap gap-2">
           {FILTERS.map((filter) => (
             <Link
@@ -138,7 +152,7 @@ export default async function AdminPage({ params, searchParams }: PageProps) {
           ))}
         </nav>
 
-        <AdminRegistrations slug={slug} registrations={registrations} />
+        <AdminRegistrations slug={slug} registrations={registrations} stock={stock} />
       </Container>
     </main>
   );
