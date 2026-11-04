@@ -2,6 +2,7 @@ import { after } from 'next/server';
 
 import { emailConfig } from '@/lib/email/config';
 import { sendRegistrationNotifications } from '@/lib/email/notifications';
+import { tryShirtStockAlerts } from '@/lib/email/shirt-stock';
 import { receiptsConfig } from '@/lib/gcs/receipts';
 import { submitRegistration } from '@/lib/registration/service';
 import { appendRegistration } from '@/lib/sheets/append';
@@ -39,6 +40,7 @@ export async function POST(request: Request): Promise<Response> {
   // Los avisos al participante y a la organizacion salen despues de guardar.
   const mail = emailConfig();
   if (mail) {
+    after(() => tryShirtStockAlerts(config, mail));
     const { record } = result;
     after(() =>
       sendRegistrationNotifications(mail, record.email, {

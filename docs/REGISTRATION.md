@@ -174,3 +174,99 @@ slug=$(openssl rand -hex 12) && pass=$(openssl rand -base64 30 | tr -dc 'A-Za-z0
 ## Pendiente
 
 - Tallas infantiles para el 3K, si la organización las va a tener.
+
+## Inventario de camisetas
+
+La migración `supabase/migrations/20261104000000_shirt_inventory.sql` usa los saldos
+finales de la columna **verde** confirmados el 3 de noviembre de 2026. Reemplazan
+las cantidades de la primera imagen:
+
+| Talla | Mujer | Hombre | Reservas externas mujer | Reservas externas hombre |
+| ----- | ----: | -----: | ----------------------: | -----------------------: |
+| XS    |     1 |      0 |                       2 |                        0 |
+| S     |    18 |      0 |                       3 |                        0 |
+| M     |    56 |     15 |                       7 |                        0 |
+| L     |    18 |     26 |                       1 |                        2 |
+| XL    |     7 |      9 |                       1 |                        2 |
+| XXL   |     0 |      2 |                       0 |                        2 |
+| Total |   100 |     52 |                      14 |                        6 |
+
+Los valores verdes **ya son saldos**, no stock original: no se les vuelve a restar
+el histórico ni las veinte reservas externas. La migración captura las
+inscripciones pendientes y aprobadas actuales bajo bloqueo de escrituras y fija
+`total = initial_available + reserved`. Así `total - reserved` coincide exactamente
+con cada celda verde al activar, independientemente del número de registros
+anteriores. `initial_available` conserva la referencia de esa inicialización.
+Las nuevas inscripciones normales sí descuentan; las rechazadas y las
+inscripciones «Sin camiseta» no consumen existencias.
+
+Aplicar la migración **antes de desplegar este código**, en la base del entorno
+correspondiente. Bloquea escrituras mientras calcula las reservas históricas y
+activa el trigger. Los registros existentes se conservan sin cambios.
+Las tablas tienen RLS sin políticas; únicamente el servidor accede a ellas.
+
+- El formulario consulta `/api/inscripcion/camisetas` al abrirse, cada 30 segundos
+  y al recuperar el foco. Deshabilita las tallas agotadas del género elegido y
+  muestra el QR solo después de elegir una talla disponible o su reserva externa.
+- La consulta y la validación previa no reservan camisetas. El trigger reserva
+  junto con la inscripción y evita sobreventa incluso si llegan dos solicitudes
+  al mismo tiempo. Un pago aprobado mantiene su reserva; un rechazo la libera.
+  Reactivar un rechazo exige existencias otra vez. Cambiar talla/género o borrar
+  una inscripción también actualiza el inventario en la misma transacción.
+- La administración `/p/<ADMIN_SLUG>` muestra base contable, inscripciones del
+  stock, disponibles y reservas externas, indicando cuántas ya tienen cédula.
+  Para corregir o reponer stock después de activar, editar **solo `total`** en
+  Supabase > Table Editor > `shirt_inventory`; no modificar `reserved` a mano.
+  `total` es la base contable más reposiciones, no el saldo disponible ni el
+  total físico de la hoja. `initial_available` no se modifica al reponer.
+- Al pasar de disponible a agotada se encola un correo a
+  **fitintegral3@gmail.com**, con género y talla. También se encolan tallas que ya
+  estaban agotadas por registros anteriores al activar el inventario. Una talla
+  con cero unidades y sin reservas desde el inicio se muestra agotada sin aviso.
+- La cola se procesa después de inscribirse, en el webhook de estados y al abrir
+  la administración. Si Gmail falla, el aviso sigue pendiente y puede reintentarse
+  una vez vencida su concesión de cinco minutos. Dos procesos no reclaman el mismo
+  aviso simultáneamente. Una reposición cancela avisos pendientes; si vuelve a
+  agotarse, se crea un aviso nuevo.
+
+Después de aplicar la migración y desplegar, abrir la administración para procesar
+los avisos iniciales. También se puede llamar **POST `/api/inventario/avisos`** con
+el encabezado `x-webhook-secret: <SUPABASE_WEBHOOK_SECRET>`; está pensado para un
+programador externo si se requieren reintentos periódicos sin visitas al sitio.
+Responde 401 sin autorización y 503 si falla el procesamiento o falta configuración.
+No hay un programador periódico instalado por este cambio.
+
+El envío usa confirmación SMTP y luego marca la fila como enviada. Si el proceso
+se interrumpe entre ambos pasos, un reintento puede duplicar ese aviso; SMTP no
+permite garantizar entrega exactamente una vez.
+
+Verificación: `npm run test:inventory` crea un Postgres 16 temporal en Docker y
+prueba la migración sobre registros anteriores, reservas concurrentes, estados,
+reposiciones, reservas externas por cédula y reclamación de avisos. No usa
+`.env.local` ni datos de Supabase.
+
+### Las veinte reservas externas
+
+La organización confirmó que estas personas deben poder inscribirse **sin
+descontar otra vez el saldo verde**. La migración crea veinte filas en
+`shirt_reservations` con el género y la talla de la tabla anterior, inicialmente
+sin cédula. **Falta la lista de cédulas para asignarlas.** Antes de que estas
+personas se inscriban, llenar `cedula` en su fila correspondiente en Supabase >
+Table Editor > `shirt_reservations`. Usar cédulas normalizadas, sin puntos,
+espacios ni guiones. No asignar reservas a personas ya inscritas: la base rechaza
+esa operación para evitar modificar retrospectivamente el saldo.
+
+El corredor ingresa primero su cédula. El formulario la consulta por POST (no
+queda en la URL), reconoce su género/talla y habilita esa camiseta incluso si
+está agotada para el público. La API vuelve a consultar la reserva y **el trigger
+decide la excepción por cédula, edición, género y talla**: el cliente no envía ni
+elige el ID de reserva. Elegir una talla o género distinto requiere existencias
+públicas. Una reserva externa rechazada, eliminada o reactivada mantiene su
+camiseta fuera del saldo público; no genera unidades adicionales disponibles.
+Una persona tiene una sola reserva por edición y no puede inscribirse dos veces.
+Las reservas vinculadas a una inscripción no se pueden reasignar o eliminar.
+
+Si no se ha cargado su cédula, la persona se trata como inscripción normal y
+consumirá stock. Cargar todas las cédulas antes de comunicarles que se inscriban.
+Las reservas solo afectan la camiseta: el pago y la revisión del comprobante
+siguen el proceso habitual.

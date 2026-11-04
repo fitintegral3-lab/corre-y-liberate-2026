@@ -53,12 +53,14 @@ export function AdminRegistrations({ slug, registrations }: Props) {
         body: JSON.stringify({ id: registration.id, status }),
       });
       const body = (await response.json().catch(() => ({ ok: false }))) as
-        { ok: true; sheet: keyof typeof SHEET_NOTE } | { ok: false };
+        { ok: true; sheet: keyof typeof SHEET_NOTE } | { ok: false; reason?: string };
       setNotes((current) => ({
         ...current,
         [registration.id]: body.ok
           ? `Listo: ${status}. ${SHEET_NOTE[body.sheet]}`
-          : 'No se pudo guardar. Intenta de nuevo.',
+          : body.reason === 'shirt-sold-out'
+            ? 'No se pudo reactivar: su camiseta está agotada. Revisa el inventario antes de aprobar o devolver a pendiente.'
+            : 'No se pudo guardar. Intenta de nuevo.',
       }));
       if (body.ok) router.refresh();
     } finally {

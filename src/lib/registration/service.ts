@@ -11,6 +11,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { SheetRegistration } from '@/lib/sheets/registration-row';
 import { receiptExists, receiptUrl, type ReceiptsConfig } from '@/lib/gcs/receipts';
 import type { SupabaseConfig } from '@/lib/supabase/config';
+import { findShirtReservation, listShirtStock } from '@/lib/registration/shirt-inventory';
 
 import type { RegistrationErrorReason } from '@/content';
 
@@ -53,6 +54,35 @@ export type SubmitResult =
   | { ok: true; id: string; total: number; category: string; record: SheetRegistration }
   | { ok: false; reason: RegistrationErrorReason; fields?: Record<string, string> };
 
+async function checkShirtStock(
+  config: SupabaseConfig,
+  data: { includesShirt: boolean; gender: string; shirtSize: string; cedula: string },
+): Promise<Extract<SubmitResult, { ok: false }> | null> {
+  if (!data.includesShirt) return null;
+  try {
+    const reservation = await findShirtReservation(config, data.cedula);
+    if (reservation?.gender === data.gender && reservation.shirtSize === data.shirtSize)
+      return null;
+    const stock = await listShirtStock(config);
+    if (
+      !stock.some(
+        (item) =>
+          item.gender === data.gender && item.shirtSize === data.shirtSize && item.available > 0,
+      )
+    ) {
+      return {
+        ok: false,
+        reason: 'shirt-sold-out',
+        fields: { shirtSize: 'Esta talla está agotada para el género elegido' },
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('[stock]', (error as Error).message);
+    return { ok: false, reason: 'unavailable' };
+  }
+}
+
 /**
  * Guarda una inscripcion. Todo se vuelve a validar aca: lo que muestra el
  * formulario es un anticipo, y el precio, la categoria y la cedula unica los
@@ -83,10 +113,22 @@ export async function submitRegistration(
           fields: { cedula: 'Esta cédula ya está inscrita' },
         };
       }
+      // La consulta previa evita subir el comprobante si la talla ya se agotó.
+      // La reserva definitiva ocurre en el trigger, junto con la inscripción.
+      const preview = registrationSchema.safeParse({
+        ...(payload as Record<string, unknown>),
+        receiptPath: 'pendientes/00000000-0000-0000-0000-000000000000.jpg',
+      });
+      if (preview.success) {
+        const stockError = await checkShirtStock(config, preview.data);
+        if (stockError) return stockError;
+      }
     }
     return { ok: false, reason: 'invalid', fields };
   }
   const data = parsed.data;
+  const stockError = await checkShirtStock(config, data);
+  if (stockError) return stockError;
 
   const priced = priceRegistration({
     distanceId: data.distanceId,
@@ -149,6 +191,13 @@ export async function submitRegistration(
     .single();
 
   if (error) {
+    if (error.code === 'P0001' && error.message === 'shirt-sold-out') {
+      return {
+        ok: false,
+        reason: 'shirt-sold-out',
+        fields: { shirtSize: 'Esta talla está agotada para el género elegido' },
+      };
+    }
     // 23505 es "unique_violation" de Postgres: la cedula ya esta inscrita en
     // esta edicion. Es el unico choque que se le explica a la persona.
     if (error.code === '23505')
