@@ -19,6 +19,8 @@ export interface AdminRegistration {
   basePrice: number;
   total: number;
   receiptPath: string;
+  gender: 'femenino' | 'masculino';
+  shirtSize: string;
 }
 
 /** Inscripciones para revisar, las mas nuevas primero. Unas 400 caben en una sola consulta. */
@@ -29,7 +31,7 @@ export async function listRegistrations(
   let query = supabaseAdmin(config)
     .from('registrations')
     .select(
-      'id, created_at, payment_status, first_name, last_name, cedula, email, phone, category, referral_code, base_price, total, receipt_path',
+      'id, created_at, payment_status, first_name, last_name, cedula, email, phone, category, referral_code, base_price, total, receipt_path, gender, shirt_size',
     )
     .order('created_at', { ascending: false })
     .limit(1000);
@@ -51,6 +53,8 @@ export async function listRegistrations(
     basePrice: row.base_price as number,
     total: row.total as number,
     receiptPath: row.receipt_path as string,
+    gender: row.gender as AdminRegistration['gender'],
+    shirtSize: row.shirt_size as string,
   }));
 }
 
