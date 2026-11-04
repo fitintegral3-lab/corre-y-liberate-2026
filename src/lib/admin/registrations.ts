@@ -64,5 +64,8 @@ export async function setPaymentStatus(
     .from('registrations')
     .update({ payment_status: status })
     .eq('id', id);
+  if (error?.code === 'P0001' && error.message === 'shirt-sold-out') {
+    throw new Error('shirt-sold-out');
+  }
   if (error) throw new Error(`No se pudo cambiar el estado de ${id}: ${error.message}`);
 }

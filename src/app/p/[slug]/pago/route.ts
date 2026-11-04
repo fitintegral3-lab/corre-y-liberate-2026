@@ -41,6 +41,9 @@ export async function POST(request: Request, { params }: Context): Promise<Respo
   try {
     await setPaymentStatus(config, id, status);
   } catch (error) {
+    if ((error as Error).message === 'shirt-sold-out') {
+      return Response.json({ ok: false, reason: 'shirt-sold-out' }, { status: 409 });
+    }
     console.error('[admin]', (error as Error).message);
     return Response.json({ ok: false, reason: 'unavailable' }, { status: 503 });
   }
