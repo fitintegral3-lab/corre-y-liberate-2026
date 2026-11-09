@@ -46,6 +46,21 @@ const price = (distanceId: DistanceId, code: string | null, now = inPhase2) =>
   priceRegistration({ distanceId, code, distances, phases, codes, qrsByPhase, now });
 
 describe('priceRegistration', () => {
+  it('sin QR de descuento sin camiseta no reutiliza el QR normal ni el de con camiseta', () => {
+    expect(
+      priceRegistration({
+        distanceId: '5k',
+        code: 'VALECORRE',
+        includesShirt: false,
+        withoutShirtQrs: { '5k': qr('/qr/sin-camiseta.png', 100_000) },
+        distances,
+        phases,
+        codes,
+        qrsByPhase,
+        now: inPhase2,
+      }),
+    ).toEqual({ ok: false, reason: 'no-payment-qr' });
+  });
   it('sin codigo cobra el QR normal de la preventa vigente', () => {
     expect(price('10k', null)).toMatchObject({
       ok: true,

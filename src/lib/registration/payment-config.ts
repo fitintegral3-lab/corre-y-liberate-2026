@@ -7,8 +7,10 @@ import type { PaymentQr } from '@/domain/registration/payment';
 import { discountCodeSchema, phaseQrsSchema } from '@/domain/registration/payment';
 
 import qr10kDiscount from './qr-descuento/10k.png';
+import qr10kWithoutShirtDiscount from './qr-descuento/10k-sin-camiseta.png';
 import qr3kDiscount from './qr-descuento/3k.png';
 import qr5kDiscount from './qr-descuento/5k.png';
+import qr5kWithoutShirtDiscount from './qr-descuento/5k-sin-camiseta.png';
 import qr7kDiscount from './qr-descuento/7k.webp';
 
 /**
@@ -76,4 +78,10 @@ export const paymentQrsByPhase = z.record(z.string(), phaseQrsSchema).parse({
 export const withoutShirtQrs: Readonly<Partial<Record<DistanceId, PaymentQr>>> = {
   '5k': { image: '/qr/5k-sin-camiseta.png', amount: withoutShirtPrices['5k'] },
   '10k': { image: '/qr/10k-sin-camiseta.png', amount: withoutShirtPrices['10k'] },
+};
+
+/** QR sin camiseta con código, decodificados y verificados con los originales. */
+export const withoutShirtDiscountQrs: Readonly<Partial<Record<DistanceId, PaymentQr>>> = {
+  '5k': { image: urlOf(qr5kWithoutShirtDiscount), amount: 90_000 },
+  '10k': { image: urlOf(qr10kWithoutShirtDiscount), amount: 120_000 },
 };

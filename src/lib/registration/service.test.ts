@@ -62,6 +62,34 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('reserva de camiseta al inscribirse', () => {
+  it.each([
+    ['5k', 100_000, 90_000],
+    ['10k', 130_000, 120_000],
+  ])(
+    'guarda %s sin camiseta con código al precio recalculado por el servidor',
+    async (distanceId, basePrice, total) => {
+      const result = await submitRegistration(
+        config,
+        receipts,
+        { ...valid, distanceId, includesShirt: false, referralCode: 'valecorre', total: 1 },
+        now,
+      );
+      expect(result).toMatchObject({
+        ok: true,
+        total,
+        record: { shirtSize: 'Sin camiseta', referralCode: 'VALECORRE', basePrice, total },
+      });
+      expect(insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          shirt_size: 'Sin camiseta',
+          referral_code: 'VALECORRE',
+          base_price: basePrice,
+          total,
+        }),
+      );
+      expect(listShirtStock).not.toHaveBeenCalled();
+    },
+  );
   it('una reserva por cédula permite inscribirse sin exigir stock público', async () => {
     vi.mocked(findShirtReservation).mockResolvedValue({
       gender: 'femenino',
