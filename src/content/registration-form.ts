@@ -39,8 +39,6 @@ export const registrationErrors = {
   'shirt-sold-out':
     'La camiseta de ese género y talla está agotada. Elige otra talla o inscríbete sin camiseta si tu distancia lo permite.',
   'shirt-option-unavailable': 'La opción sin camiseta solo está disponible para 5K y 10K.',
-  'no-shirt-discount':
-    'La inscripción sin camiseta tiene precio fijo y no admite descuentos adicionales.',
   'unknown-code': 'Ese código de descuento no existe. Revísalo o inscríbete sin código.',
   'no-payment-qr': 'El QR de pago no está disponible. Escríbenos por WhatsApp.',
   'duplicate-cedula':

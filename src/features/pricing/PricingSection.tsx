@@ -77,8 +77,8 @@ export function PricingSection() {
                 ))}
             </div>
             <p className="mt-3 text-sm text-white/80">
-              Elige con o sin camiseta al inscribirte. Precios sin camiseta no acumulables con
-              códigos de descuento.
+              Elige con o sin camiseta al inscribirte. Si tienes un código de descuento, aplícalo en
+              el formulario para consultar tu valor de pago.
             </p>
           </div>
         )}

@@ -5,7 +5,11 @@ import { describe, expect, it } from 'vitest';
 
 import { presalePhases } from '@/content';
 import { priceFor } from '@/domain/event/selectors';
-import { discountCodes, paymentQrsByPhase } from '@/lib/registration/payment-config';
+import {
+  discountCodes,
+  paymentQrsByPhase,
+  withoutShirtDiscountQrs,
+} from '@/lib/registration/payment-config';
 import { quote } from '@/lib/registration/service';
 
 import type { DistanceId } from '@/domain/event/schema';
@@ -84,6 +88,9 @@ describe('pago por QR', () => {
         expect(qrs.discount.image.startsWith('/qr/')).toBe(false);
       }
     }
+    for (const qr of Object.values(withoutShirtDiscountQrs)) {
+      expect(qr.image.startsWith('/qr/')).toBe(false);
+    }
   });
 
   it('los codigos que se reparten cobran el QR con descuento', () => {
@@ -124,10 +131,33 @@ describe('pago por QR', () => {
       expect(fs.existsSync(path.join(process.cwd(), 'public', result.price.qr.image))).toBe(true);
   });
 
-  it('no acumula descuentos sobre los precios sin camiseta', () => {
-    expect(quote('5k', 'VALECORRE', new Date('2026-10-28T15:00:00Z'), false)).toEqual({
+  it.each([
+    ['5k', 100_000, 90_000],
+    ['10k', 130_000, 120_000],
+  ] as const)(
+    'sin camiseta %s aplica el QR con código al valor correcto',
+    (distance, basePrice, total) => {
+      for (const { code } of discountCodes) {
+        expect(
+          quote(distance, code.toLowerCase(), new Date('2026-11-04T15:00:00Z'), false),
+        ).toMatchObject({
+          ok: true,
+          price: {
+            code,
+            basePrice,
+            total,
+            discount: 10_000,
+            qr: { image: withoutShirtDiscountQrs[distance]!.image, amount: total },
+          },
+        });
+      }
+    },
+  );
+
+  it('sin camiseta también rechaza códigos desconocidos', () => {
+    expect(quote('5k', 'NOEXISTE', new Date('2026-11-04T15:00:00Z'), false)).toEqual({
       ok: false,
-      reason: 'no-shirt-discount',
+      reason: 'unknown-code',
     });
   });
 

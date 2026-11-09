@@ -44,6 +44,21 @@ banco o billetera, o lo amplía en un modal para tomarle captura.
 | 7K        | $140.000  | $126.000         |
 | 10K       | $160.000  | $144.000         |
 
+Las opciones **sin camiseta** tienen sus propios QR:
+
+| Distancia | Sin código | Con código válido |
+| --------- | ---------: | ----------------: |
+| 5K        |   $100.000 |           $90.000 |
+| 10K       |   $130.000 |          $120.000 |
+
+Los QR con código sin camiseta se importan desde
+`src/lib/registration/qr-descuento/5k-sin-camiseta.png` y
+`10k-sin-camiseta.png`, fuera de `public/`. Se verificó el monto EMV, moneda COP,
+llave `@bravo4895` y CRC de las imágenes originales suministradas. El campo de
+código está disponible con o sin camiseta; al cambiar de opción o distancia se
+recalcula el QR conservando el código ya aplicado. Un código desconocido se
+informa y el servidor vuelve a calcular el monto al guardar la inscripción.
+
 Los montos salen de decodificar cada QR (campo 54 del formato EMVCo). **Solo hay QR para la preventa 2**
 (hasta el 31 de octubre). Para la preventa 3 hay que agregar sus QR (normales en `public/qr/`, con descuento en
 `src/lib/registration/qr-descuento/`) y registrarlos en ese archivo;
