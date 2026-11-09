@@ -211,7 +211,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
     setDistanceId(next);
     const nextIncludesShirt = supportsWithoutShirt(next) ? includesShirt : true;
     setIncludesShirt(nextIncludesShirt);
-    void loadQuote(next, nextIncludesShirt ? (quote?.code ?? null) : null, nextIncludesShirt);
+    void loadQuote(next, quote?.code ?? null, nextIncludesShirt);
   }
 
   async function uploadReceipt(file: File): Promise<string> {
@@ -449,8 +449,7 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
                     checked={includesShirt === value}
                     onChange={() => {
                       setIncludesShirt(value);
-                      setCodeInput('');
-                      void loadQuote(distanceId, null, value);
+                      void loadQuote(distanceId, quote?.code ?? null, value);
                     }}
                     className={styles.radio}
                   />
@@ -646,46 +645,47 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
           </p>
         ) : (
           <div className="space-y-5">
-            {includesShirt ? (
-              <div>
-                <label htmlFor="code" className={labelClass}>
-                  Código de descuento (opcional)
-                </label>
-                <div className="mt-2 flex gap-2">
-                  <input
-                    id="code"
-                    value={codeInput}
-                    onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
-                    placeholder="TU CÓDIGO"
-                    autoComplete="off"
-                    maxLength={20}
-                    className={`${inputClass} min-w-0 flex-1 tracking-wider uppercase`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void loadQuote(distanceId, codeInput.trim() || null)}
-                    disabled={codeInput.trim() === ''}
-                    className="cursor-pointer rounded-xl bg-neutral-900 px-5 font-athletic-bold text-sm tracking-wider text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    APLICAR
-                  </button>
-                </div>
-                {quoteError && (
-                  <p role="alert" className="mt-2 text-sm font-semibold text-red-700">
-                    {registrationErrors[quoteError]}
-                  </p>
-                )}
+            <div>
+              <label htmlFor="code" className={labelClass}>
+                Código de descuento (opcional)
+              </label>
+              <div className="mt-2 flex gap-2">
+                <input
+                  id="code"
+                  value={codeInput}
+                  onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
+                  placeholder="TU CÓDIGO"
+                  autoComplete="off"
+                  maxLength={20}
+                  className={`${inputClass} min-w-0 flex-1 tracking-wider uppercase`}
+                />
+                <button
+                  type="button"
+                  onClick={() => void loadQuote(distanceId, codeInput.trim() || null)}
+                  disabled={codeInput.trim() === ''}
+                  className="cursor-pointer rounded-xl bg-neutral-900 px-5 font-athletic-bold text-sm tracking-wider text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  APLICAR
+                </button>
               </div>
-            ) : (
-              <p className="text-sm text-neutral-600">
-                Inscripción sin camiseta. Precio fijo, sin descuentos adicionales.
-              </p>
-            )}
-            {!includesShirt && quoteError && (
-              <p role="alert" className="text-sm font-semibold text-red-700">
-                {registrationErrors[quoteError]}
-              </p>
-            )}
+              {quoteError && (
+                <p role="alert" className="mt-2 text-sm font-semibold text-red-700">
+                  {registrationErrors[quoteError]}
+                </p>
+              )}
+              {quote?.code && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCodeInput('');
+                    void loadQuote(distanceId, null);
+                  }}
+                  className="mt-2 cursor-pointer text-sm font-semibold text-neutral-600 underline"
+                >
+                  Quitar código
+                </button>
+              )}
+            </div>
             {!quote && !quoteError && (
               <p role="status" className="text-sm text-neutral-600">
                 Consultando el valor y el QR…

@@ -6,6 +6,7 @@ import {
   discountCodes,
   paymentQrsByPhase,
   withoutShirtQrs,
+  withoutShirtDiscountQrs,
 } from '@/lib/registration/payment-config';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { SheetRegistration } from '@/lib/sheets/registration-row';
@@ -29,6 +30,7 @@ export function quote(
     distanceId: distance.data,
     includesShirt,
     withoutShirtQrs,
+    withoutShirtDiscountQrs,
     code,
     distances,
     phases: presalePhases,
@@ -134,6 +136,7 @@ export async function submitRegistration(
     distanceId: data.distanceId,
     includesShirt: data.includesShirt,
     withoutShirtQrs,
+    withoutShirtDiscountQrs,
     code: data.referralCode,
     distances,
     phases: presalePhases,

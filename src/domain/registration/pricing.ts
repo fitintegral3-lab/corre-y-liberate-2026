@@ -23,8 +23,7 @@ export type PriceResult =
         | 'sold-out'
         | 'unknown-code'
         | 'no-payment-qr'
-        | 'shirt-option-unavailable'
-        | 'no-shirt-discount';
+        | 'shirt-option-unavailable';
     };
 
 /**
@@ -46,6 +45,7 @@ export function priceRegistration(input: {
   code: string | null;
   includesShirt?: boolean;
   withoutShirtQrs?: Readonly<Partial<Record<DistanceId, PaymentQr>>>;
+  withoutShirtDiscountQrs?: Readonly<Partial<Record<DistanceId, PaymentQr>>>;
   distances: readonly Pick<Distance, 'id' | 'soldOut'>[];
   phases: readonly PresalePhase[];
   codes: readonly DiscountCode[];
@@ -61,7 +61,23 @@ export function priceRegistration(input: {
   if (input.includesShirt === false) {
     const qr = input.withoutShirtQrs?.[input.distanceId];
     if (!qr) return { ok: false, reason: 'shirt-option-unavailable' };
-    if (input.code !== null) return { ok: false, reason: 'no-shirt-discount' };
+    if (input.code !== null) {
+      const found = input.codes.find((candidate) => candidate.code === input.code);
+      if (!found) return { ok: false, reason: 'unknown-code' };
+      const discounted = input.withoutShirtDiscountQrs?.[input.distanceId];
+      if (!discounted) return { ok: false, reason: 'no-payment-qr' };
+      return {
+        ok: true,
+        price: {
+          phase,
+          basePrice: qr.amount,
+          code: found.code,
+          total: discounted.amount,
+          discount: qr.amount - discounted.amount,
+          qr: discounted,
+        },
+      };
+    }
     return {
       ok: true,
       price: { phase, basePrice: qr.amount, code: null, total: qr.amount, discount: 0, qr },
