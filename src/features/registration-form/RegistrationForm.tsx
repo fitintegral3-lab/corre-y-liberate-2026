@@ -26,6 +26,7 @@ export interface DistanceOption {
   label: string;
   description: string;
   routeImage: string;
+  routeVideo?: string;
   soldOut: boolean;
 }
 
@@ -363,7 +364,11 @@ export function RegistrationForm({ distances }: RegistrationFormProps) {
                     {distance.soldOut ? registrationFormCopy.soldOut : distance.description}
                   </span>
                 </label>
-                <RouteButton label={distance.label} routeImage={distance.routeImage} />
+                <RouteButton
+                  label={distance.label}
+                  routeImage={distance.routeImage}
+                  routeVideo={distance.routeVideo}
+                />
               </div>
             ))}
           </div>

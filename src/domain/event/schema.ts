@@ -61,6 +61,10 @@ export const distanceSchema = z.object({
   description: z.string().min(1),
   /** Afiche con el mapa del recorrido, que se abre desde los horarios de salida. */
   routeImage: assetPathSchema,
+  routeVideo: z
+    .string()
+    .regex(/^\/[\w\-./% ]+\.mp4$/i, 'debe ser un MP4 dentro de public/')
+    .optional(),
   /**
    * Cupos vendidos: la distancia se sigue mostrando —quien ya pago la corre—,
    * pero no se puede elegir ni cobrar. Se apaga con `true` en vez de borrarla
