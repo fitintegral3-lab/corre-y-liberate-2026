@@ -20,6 +20,7 @@ export const distances = z
       startTime: '6:20 am',
       description: '3 kilómetros · Para todo público',
       routeImage: '/rutas/3k.webp',
+      routeVideo: '/rutas/3k.mp4',
     },
     {
       id: '5k',
@@ -29,6 +30,7 @@ export const distances = z
       startTime: '6:10 am',
       description: '5 kilómetros',
       routeImage: '/rutas/5k.webp',
+      routeVideo: '/rutas/5k.mp4',
     },
     {
       id: '7k',
@@ -48,5 +50,6 @@ export const distances = z
       startTime: '6:00 am',
       description: '10 kilómetros',
       routeImage: '/rutas/10k.webp',
+      routeVideo: '/rutas/10k.mp4',
     },
   ]);

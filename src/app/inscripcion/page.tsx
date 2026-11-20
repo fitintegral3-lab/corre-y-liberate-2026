@@ -82,6 +82,7 @@ export default function InscripcionPage() {
               label: distance.label,
               description: distance.description,
               routeImage: distance.routeImage,
+              routeVideo: distance.routeVideo,
               soldOut: distance.soldOut,
             }))}
           />
