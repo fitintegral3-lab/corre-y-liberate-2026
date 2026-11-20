@@ -53,7 +53,11 @@ export function HeroSection() {
                     {distance.startTime}
                   </dd>
                   <dd className="mt-2">
-                    <RouteButton label={distance.label} routeImage={distance.routeImage} />
+                    <RouteButton
+                      label={distance.label}
+                      routeImage={distance.routeImage}
+                      routeVideo={distance.routeVideo}
+                    />
                   </dd>
                 </div>
               ))}
