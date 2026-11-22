@@ -15,7 +15,7 @@ export const presalePhases = z
       name: 'INSCRIPCIONES',
       tagline: 'Precios vigentes hasta el cierre',
       startsOn: '2026-08-01',
-      endsOn: '2026-11-20',
+      endsOn: '2026-11-22',
       prices: { '5k': 120_000, '7k': 140_000, '10k': 160_000, '3k-infantil': 90_000 },
     },
   ]);

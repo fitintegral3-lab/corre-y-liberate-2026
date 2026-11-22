@@ -48,9 +48,9 @@ describe('premiacion', () => {
 });
 
 describe('inscripciones', () => {
-  it('tiene un unico periodo de venta hasta el 20 de noviembre', () => {
+  it('tiene un unico periodo de venta hasta el 22 de noviembre', () => {
     expect(presalePhases).toHaveLength(1);
-    expect(presalePhases[0].endsOn).toBe('2026-11-20');
+    expect(presalePhases[0].endsOn).toBe('2026-11-22');
   });
   it('le pone precio a todas las distancias en todas las fases', () => {
     for (const phase of presalePhases) {
