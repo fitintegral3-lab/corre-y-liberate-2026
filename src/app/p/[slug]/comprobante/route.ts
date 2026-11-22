@@ -1,5 +1,5 @@
 import { adminAllowed } from '@/lib/admin/auth';
-import { downloadReceipt, receiptsConfig } from '@/lib/gcs/receipts';
+import { downloadStorageObject, receiptsConfig } from '@/lib/gcs/receipts';
 
 interface Context {
   params: Promise<{ slug: string }>;
@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: Context): Promise<Respon
 
   const config = receiptsConfig();
   if (!config) return new Response(null, { status: 503 });
-  const file = await downloadReceipt(config, path).catch(() => null);
+  const file = await downloadStorageObject(config, path).catch(() => null);
   if (!file) return new Response(null, { status: 404 });
 
   return new Response(file.body, {
