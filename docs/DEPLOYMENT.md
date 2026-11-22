@@ -34,7 +34,7 @@ igual y solo no se copia o no se envía el correo.
 | Variable                             | Secreta | Para qué                                         |
 | ------------------------------------ | ------- | ------------------------------------------------ |
 | `SUPABASE_URL`                       | No      | Proyecto de Supabase                             |
-| `SUPABASE_SECRET_KEY`                | Sí      | Leer y escribir inscripciones                    |
+| `SUPABASE_SECRET_KEY`                | Sí      | Inscripciones y Feria Empresarial                |
 | `GCS_RECEIPTS_BUCKET`                | No      | Bucket de comprobantes                           |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | No      | Cuenta de servicio (planilla y bucket)           |
 | `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Sí      | Llave de la cuenta de servicio                   |
@@ -53,10 +53,13 @@ Qué es cada una y cómo se obtiene: [REGISTRATION.md](REGISTRATION.md) y
 `.env.example`. Las credenciales de administración se generan distintas para
 cada entorno.
 
-`/feria-empresarial` guarda las respuestas en un libro privado de Google Sheets
-con la pestaña `Feria Empresarial`. La cuenta de servicio necesita acceso de
-edición. Si no se define `FAIR_SHEETS_SPREADSHEET_ID`, el servidor lee el ID del
-objeto `config/feria-empresarial.txt` en el bucket privado de comprobantes.
+Antes de desplegar `/feria-empresarial`, aplica la migración
+`supabase/migrations/20261121000000_fair_submissions.sql` en el mismo Supabase
+que usa la inscripción. El formulario confirma después de guardar en esa base.
+La copia a Google Sheets es opcional y se hace después de responder. La cuenta
+de servicio necesita permiso de edición en la pestaña `Feria Empresarial`.
+Si no se define `FAIR_SHEETS_SPREADSHEET_ID`, el servidor lee el ID del objeto
+`config/feria-empresarial.txt` en el bucket privado de comprobantes.
 
 `NEXT_PUBLIC_SITE_URL` alimenta `metadataBase`, el `sitemap.xml`, el
 `robots.txt` y las URLs absolutas de Open Graph. Si queda mal, las vistas
