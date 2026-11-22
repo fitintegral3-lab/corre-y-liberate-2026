@@ -19,6 +19,7 @@ export const navLinks = z
     { href: '#kit', label: 'Kit' },
     { href: '#como-llegar', label: 'Como llegar' },
     { href: '#patrocinadores', label: 'Patrocinadores' },
+    { href: '#feria-empresarial', label: 'Feria Empresarial' },
   ]);
 
 /** Ancla del hero, a donde vuelve el logo del header. */

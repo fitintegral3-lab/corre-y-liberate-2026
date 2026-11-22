@@ -12,6 +12,7 @@ import {
   SponsorsSection,
   VenueSection,
 } from '@/features';
+import { FairSection } from '@/features/entrepreneur-fair/FairSection';
 import { buildEventJsonLd, buildOrganizationJsonLd } from '@/lib/seo/json-ld';
 
 /**
@@ -41,6 +42,7 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <RegistrationBanner />
+        <FairSection />
         <AwardsSection />
         <EditionSection />
         <PricingSection />
