@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { siteConfig } from '@/config/site';
 import { event, eventName } from '@/content';
 import { FairForm } from '@/features/entrepreneur-fair/FairForm';
-import { fairSheetsConfig } from '@/lib/sheets/fair-config';
+import { supabaseConfig } from '@/lib/supabase/config';
 
 import type { Metadata } from 'next';
 
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 
 export const revalidate = 300;
 
-export default async function FeriaEmpresarialPage() {
-  const available = Boolean(await fairSheetsConfig());
+export default function FeriaEmpresarialPage() {
+  const available = Boolean(supabaseConfig());
 
   return (
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-8 sm:py-12">
