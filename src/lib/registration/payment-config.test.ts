@@ -20,9 +20,9 @@ describe('pago por QR', () => {
     ['5k', 120_000, 108_000],
     ['10k', 160_000, 144_000],
   ] as const)(
-    'mantiene precios y QR de %s hasta el 20 de noviembre inclusive',
+    'mantiene precios y QR de %s hasta el 22 de noviembre inclusive',
     (distance, normal, discount) => {
-      for (const now of [new Date('2026-11-01T05:00:00Z'), new Date('2026-11-21T04:59:59.999Z')]) {
+      for (const now of [new Date('2026-11-01T05:00:00Z'), new Date('2026-11-23T04:59:59.999Z')]) {
         expect(quote(distance, null, now)).toMatchObject({
           ok: true,
           price: { total: normal, qr: { amount: normal } },
@@ -32,7 +32,7 @@ describe('pago por QR', () => {
           price: { total: discount, qr: { amount: discount } },
         });
       }
-      expect(quote(distance, null, new Date('2026-11-21T05:00:00Z'))).toEqual({
+      expect(quote(distance, null, new Date('2026-11-23T05:00:00Z'))).toEqual({
         ok: false,
         reason: 'registration-closed',
       });
@@ -45,11 +45,11 @@ describe('pago por QR', () => {
   ] as const)(
     'cierra tambien la venta sin camiseta de %s en hora de Colombia',
     (distance, amount) => {
-      expect(quote(distance, null, new Date('2026-11-21T04:59:59.999Z'), false)).toMatchObject({
+      expect(quote(distance, null, new Date('2026-11-23T04:59:59.999Z'), false)).toMatchObject({
         ok: true,
         price: { total: amount, qr: { amount } },
       });
-      expect(quote(distance, null, new Date('2026-11-21T05:00:00Z'), false)).toEqual({
+      expect(quote(distance, null, new Date('2026-11-23T05:00:00Z'), false)).toEqual({
         ok: false,
         reason: 'registration-closed',
       });

@@ -115,8 +115,8 @@ export async function receiptExists(config: ReceiptsConfig, objectName: string):
   return true;
 }
 
-/** Descarga un comprobante para mostrarlo en la administracion, sin iniciar sesion en Google. */
-export async function downloadReceipt(
+/** Descarga un objeto del bucket privado usando la cuenta de servicio. */
+export async function downloadStorageObject(
   config: ReceiptsConfig,
   objectName: string,
 ): Promise<{ body: ArrayBuffer; contentType: string } | null> {

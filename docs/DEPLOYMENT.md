@@ -40,6 +40,7 @@ igual y solo no se copia o no se envía el correo.
 | `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Sí      | Llave de la cuenta de servicio                   |
 | `GOOGLE_SHEETS_SPREADSHEET_ID`       | No      | Planilla de inscripciones                        |
 | `GOOGLE_SHEETS_TAB`                  | No      | Pestaña (por defecto `Inscripciones`)            |
+| `FAIR_SHEETS_SPREADSHEET_ID`         | No      | Libro privado de la Feria Empresarial            |
 | `GMAIL_USER`                         | No      | Cuenta que envía los correos                     |
 | `GMAIL_APP_PASSWORD`                 | Sí      | Contraseña de aplicación de esa cuenta           |
 | `EMAIL_FROM_NAME`                    | No      | Nombre del remitente                             |
@@ -51,6 +52,11 @@ igual y solo no se copia o no se envía el correo.
 Qué es cada una y cómo se obtiene: [REGISTRATION.md](REGISTRATION.md) y
 `.env.example`. Las credenciales de administración se generan distintas para
 cada entorno.
+
+`/feria-empresarial` guarda las respuestas en un libro privado de Google Sheets
+con la pestaña `Feria Empresarial`. La cuenta de servicio necesita acceso de
+edición. Si no se define `FAIR_SHEETS_SPREADSHEET_ID`, el servidor lee el ID del
+objeto `config/feria-empresarial.txt` en el bucket privado de comprobantes.
 
 `NEXT_PUBLIC_SITE_URL` alimenta `metadataBase`, el `sitemap.xml`, el
 `robots.txt` y las URLs absolutas de Open Graph. Si queda mal, las vistas
