@@ -24,6 +24,10 @@ como un `NaN` o una imagen rota.
 | Códigos de descuento y QR de pago         | `src/lib/registration/payment-config.ts` (solo servidor) |
 | Textos de los correos al corredor         | `src/lib/email/templates.ts`                             |
 | Enlaces del menú                          | `src/content/navigation.ts`                              |
+| Inicio entre ediciones (2027, resultados) | `src/content/off-season.ts`                              |
+| Página Súmate (patrocinar, donar, aliado) | `src/content/support.ts`                                 |
+| Abrir o cerrar la Feria Empresarial       | `src/content/entrepreneur-fair.ts`                       |
+| Preguntas de la encuesta de experiencia   | `src/features/experience-survey/schema.ts`               |
 | Enlace de inscripción, redes, créditos    | `src/config/site.ts`                                     |
 
 Los códigos y los QR no están en `src/content/` a propósito: ese contenido lo
@@ -121,6 +125,48 @@ claim: 'Cada kilómetro protege, inspira y transforma',
 ```
 
 `claim` es la versión en prosa para `<meta>`, Open Graph y datos estructurados.
+
+## Entre ediciones
+
+Después de la carrera el sitio deja de vender y pasa a un inicio de una sola pantalla: «En preparativos para
+Corre y Libérate 2027», con accesos a los resultados, las fotos y videos, la
+[encuesta de experiencia](SURVEY.md) y la página Súmate. La landing de la carrera no se borra: queda en
+`src/features/landing/EventLanding.tsx`, lista para la próxima edición.
+
+Lo decide un solo dato, `active` en `src/content/off-season.ts`. Con `true` se ve el inicio entre ediciones;
+además, la descripción del sitio y las vistas previas al compartir el enlace anuncian la próxima edición en
+vez de invitar a inscribirse (`src/lib/seo/metadata.ts`).
+
+### Cambiar los accesos del inicio
+
+`links` en `src/content/off-season.ts`. Cada uno tiene `title`, `description` y `href`; un `href` que
+empieza con `https://` abre en otra pestaña. Si se agrega un acceso con un `id` nuevo, se le asigna un ícono
+en `src/features/off-season/OffSeasonHome.tsx`.
+
+Hoy apuntan a los resultados por categoría de cronometrajeinstantaneo.com, a la carpeta pública de Google
+Drive con las fotos y videos 2026, a `/encuesta` y a `/sumate`.
+
+### Abrir la edición 2027
+
+1. Actualizar el evento (`event.ts`: `edition`, `year`, `date`), las fases y precios (`pricing.ts`), las
+   distancias y lo que cambie, como en las recetas de arriba.
+2. Poner `active: false` en `src/content/off-season.ts`. Vuelve la landing completa y las descripciones de la
+   carrera.
+3. Correr `npm run verify`: `src/app/home.test.ts` y `src/lib/seo/metadata.test.ts` cuidan el modo entre
+   ediciones, así que hay que ajustarlas al nuevo estado.
+
+### Cerrar o reabrir la Feria Empresarial
+
+`open` en `src/content/entrepreneur-fair.ts`. Con `false`, `/feria-empresarial` muestra `closedMessage` y la
+API rechaza envíos nuevos (410) sin tocar la base. Las respuestas guardadas no se tocan. La sección de la
+Feria solo aparece en la landing de la carrera, no en el inicio entre ediciones.
+
+### Editar la página Súmate
+
+`src/content/support.ts`. `supportOptions` son las tres tarjetas (patrocinador, donar, aliado) con el
+mensaje que cada una propone; `allyContributions`, lo que un aliado puede marcar que aporta. Cada tarjeta
+abre una ventana donde la persona edita el mensaje antes de enviarlo por WhatsApp, al número de
+`siteConfig.links.whatsapp` (`src/config/site.ts`).
 
 ## Antes de abrir el PR
 

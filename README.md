@@ -9,6 +9,14 @@ inscripción es propia, en `/inscripcion`: datos del corredor, pago por QR Bre-B
 y comprobante, con revisión del pago por parte de la organización. Todo lo demás
 está subordinado a eso.
 
+**Hoy está entre ediciones.** La carrera 2026 ya pasó y las inscripciones
+cerraron, así que el inicio anuncia los preparativos de 2027 y lleva a los
+resultados, las fotos y videos, la [encuesta de experiencia](docs/SURVEY.md) y
+`/sumate`, para patrocinar, donar o ser aliado. La landing de la carrera sigue en
+el código para abrir la próxima edición: [Entre ediciones](docs/CONTENT.md#entre-ediciones).
+
+Producción: https://corre-y-liberate-2026.vercel.app
+
 ---
 
 ## Stack
@@ -59,8 +67,10 @@ El sitio queda en <http://localhost:3000>.
 
 ```text
 src/
-├── app/          Rutas: la landing, /inscripcion, la administración de pagos (/p/<secreto>),
-│                 /api/inscripcion/*, sitemap, robots, OG image, /api/health.
+├── app/          Rutas: el inicio (landing o entre ediciones), /inscripcion, /encuesta,
+│                 /sumate, /feria-empresarial, la administración de pagos (/p/<secreto>),
+│                 /api/inscripcion/*, /api/encuesta/*, /api/feria-empresarial, sitemap,
+│                 robots, OG image, /api/health.
 ├── features/     Una carpeta por sección de la landing. Maquetado y nada más.
 ├── components/   layout/ (header, footer, FAB) y ui/ (primitivas compartidas).
 ├── content/      EL CONTENIDO DEL EVENTO. Precios, fechas, premios, patrocinadores.
@@ -72,7 +82,8 @@ src/
 └── styles/       Fuentes auto-hospedadas.
 
 ops/              Instancia de Cauce: planning, organización, flujos.
-docs/             Arquitectura, ramas, despliegue, cómo editar contenido y la inscripción.
+docs/             Arquitectura, ramas, despliegue, cómo editar contenido, la inscripción
+                  y la encuesta.
 ```
 
 La regla que ordena todo: **`domain` no sabe de React, `content` no sabe de
@@ -89,6 +100,11 @@ esquema del dominio al construir, así que un precio negativo o una fecha
 inexistente rompen el build con el campo y el motivo.
 
 Guía paso a paso en [docs/CONTENT.md](docs/CONTENT.md).
+
+## Encuesta de experiencia
+
+Quién puede responder, qué se pregunta, dónde ver las respuestas y cómo borrar
+una de prueba: [docs/SURVEY.md](docs/SURVEY.md).
 
 ## Inscripción y pagos
 

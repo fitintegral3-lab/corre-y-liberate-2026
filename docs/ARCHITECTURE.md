@@ -61,7 +61,13 @@ y nada más: lee de `@/content`, pide derivaciones a `@/domain` y compone
 primitivas de `@/components/ui`.
 
 Fuera de la landing: `registration-form/` es el formulario de `/inscripcion` y
-`admin/` la lista de la revisión de pagos.
+`admin/` la lista de la revisión de pagos. `experience-survey/` es la encuesta de
+`/encuesta`, `support/` la página `/sumate` y `entrepreneur-fair/` el formulario
+de `/feria-empresarial`.
+
+El inicio elige entre dos composiciones según `offSeason.active`
+(`src/content/off-season.ts`): `landing/EventLanding.tsx`, la landing de la
+carrera, y `off-season/OffSeasonHome.tsx`, el inicio entre ediciones.
 
 `awards/theme.ts` es el único lugar donde el contenido toca el estilo: traduce
 `'purple' | 'light' | 'dark'` a colores y clases. El contenido dice cuál tarjeta
