@@ -1,3 +1,5 @@
+import { colombiaDateTime } from '@/lib/sheets/registration-row';
+
 import { ratingQuestions, type SurveyResponse } from './schema';
 
 export const SURVEY_TAB = 'Encuesta';
@@ -15,7 +17,7 @@ export interface SurveyRespondent {
 
 export const SURVEY_HEADERS = [
   'Referencia',
-  'Fecha de envío (UTC)',
+  'Fecha de envío (hora Colombia)',
   'Nombres',
   'Apellidos',
   'Cédula',
@@ -37,7 +39,7 @@ export const SURVEY_HEADERS = [
 export function toSurveyRow(data: SurveyResponse, person: SurveyRespondent, receivedAt: string) {
   return [
     data.submissionId,
-    receivedAt,
+    colombiaDateTime(receivedAt),
     person.first_name,
     person.last_name,
     person.cedula,

@@ -1,10 +1,12 @@
+import { colombiaDateTime } from '@/lib/sheets/registration-row';
+
 import type { FairResponse } from './schema';
 
 export const FAIR_TAB = 'Feria Empresarial';
 
 export const FAIR_HEADERS = [
   'Referencia',
-  'Fecha de envío (UTC)',
+  'Fecha de envío (hora Colombia)',
   'Nombres y apellidos',
   'Número de identificación',
   'Edad',
@@ -29,7 +31,7 @@ export const FAIR_HEADERS = [
 export function toFairRow(data: FairResponse, receivedAt: string, consentVersion: string) {
   return [
     data.submissionId,
-    receivedAt,
+    colombiaDateTime(receivedAt),
     data.fullName,
     data.identification,
     data.age,
