@@ -31,4 +31,12 @@ export { purposePillars, purposeSection } from '@/content/purpose';
 export { registrationErrors, registrationFormCopy, terms } from '@/content/registration-form';
 export type { RegistrationErrorReason } from '@/content/registration-form';
 export { sponsors, sponsorsSection } from '@/content/sponsors';
+export {
+  allyContributions,
+  allyMessage,
+  supportOptions,
+  supportPage,
+  whatsappLink,
+} from '@/content/support';
+export type { AllyContribution } from '@/content/support';
 export { venue, venueFullAddress, venueSection } from '@/content/venue';

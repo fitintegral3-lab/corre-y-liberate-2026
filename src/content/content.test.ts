@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { awards, distances, presalePhases, sponsors } from '@/content';
+import {
+  allyMessage,
+  awards,
+  distances,
+  presalePhases,
+  sponsors,
+  supportOptions,
+  whatsappLink,
+} from '@/content';
 import { sponsorSchema } from '@/domain/event/schema';
 import { priceFor } from '@/domain/event/selectors';
 
@@ -100,5 +108,36 @@ describe('patrocinadores', () => {
     expect(accepts('https://www.facebook.com/cerealesjj/')).toBe(false);
     expect(accepts('https://instagram.com.evil.co/cerealesjj/')).toBe(false);
     expect(accepts('http://www.instagram.com/cerealesjj/')).toBe(false);
+  });
+});
+
+describe('súmate', () => {
+  const whatsapp = 'https://wa.me/573001613479';
+
+  it('el aliado manda lo que marcó, en el orden de la lista', () => {
+    expect(allyMessage(['Transporte', 'Servicios'])).toBe(
+      'Hola, quiero ser aliado de Corre y Libérate. Puedo aportar: Servicios, Transporte.',
+    );
+  });
+
+  it('ofrece primeros auxilios y logística como aportes', () => {
+    expect(allyMessage(['Logística', 'Primeros auxilios'])).toBe(
+      'Hola, quiero ser aliado de Corre y Libérate. Puedo aportar: Primeros auxilios, Logística.',
+    );
+  });
+
+  it('el aliado sin marcar nada manda el saludo solo', () => {
+    expect(allyMessage([])).toBe('Hola, quiero ser aliado de Corre y Libérate.');
+  });
+
+  it('el enlace abre el WhatsApp del sitio con el mensaje intacto', () => {
+    const link = new URL(whatsappLink(whatsapp, 'Hola, ¿cómo? & más'));
+    expect(link.origin + link.pathname).toBe(whatsapp);
+    expect(link.searchParams.get('text')).toBe('Hola, ¿cómo? & más');
+  });
+
+  it('cada opción tiene un mensaje distinto, para saber qué apoyo ofrecen', () => {
+    const messages = supportOptions.map((option) => option.message);
+    expect(new Set(messages).size).toBe(supportOptions.length);
   });
 });

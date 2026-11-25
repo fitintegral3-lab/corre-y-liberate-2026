@@ -12,6 +12,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = parseIsoDate(event.date);
   const entries: MetadataRoute.Sitemap = [
     { url: siteConfig.url, lastModified, changeFrequency: 'weekly', priority: 1 },
+    {
+      url: new URL('/sumate', siteConfig.url).toString(),
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
   ];
 
   // /inscripcion responde 404 sin base de datos o sin bucket de comprobantes:
