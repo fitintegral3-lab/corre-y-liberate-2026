@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { siteConfig } from '@/config/site';
+import { entrepreneurFair } from '@/content/entrepreneur-fair';
 import { event, eventName } from '@/content';
 import { FairForm } from '@/features/entrepreneur-fair/FairForm';
 import { supabaseConfig } from '@/lib/supabase/config';
@@ -23,7 +24,7 @@ export default function FeriaEmpresarialPage() {
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <Link
-          href="/#feria-empresarial"
+          href="/"
           className="inline-flex min-h-11 items-center gap-2 font-athletic-bold text-sm text-neutral-700 hover:text-orange-800"
         >
           <ArrowLeft size={18} aria-hidden="true" />
@@ -37,7 +38,11 @@ export default function FeriaEmpresarialPage() {
             Formato de caracterización de emprendedoras
           </h1>
         </header>
-        {available ? (
+        {!entrepreneurFair.open ? (
+          <p role="status" className="rounded-2xl bg-white p-6 text-neutral-800">
+            {entrepreneurFair.closedMessage}
+          </p>
+        ) : available ? (
           <FairForm contactUrl={siteConfig.links.whatsapp} />
         ) : (
           <p className="rounded-2xl bg-white p-6 text-neutral-800">

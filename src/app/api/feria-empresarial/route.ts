@@ -1,5 +1,6 @@
 import { after } from 'next/server';
 
+import { entrepreneurFair } from '@/content/entrepreneur-fair';
 import { consentVersion, fairResponseSchema } from '@/features/entrepreneur-fair/schema';
 import { toFairSubmission } from '@/features/entrepreneur-fair/submission-row';
 import { appendFairResponse } from '@/lib/sheets/append-fair';
@@ -8,6 +9,9 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { supabaseConfig } from '@/lib/supabase/config';
 
 export async function POST(request: Request) {
+  if (!entrepreneurFair.open)
+    return Response.json({ ok: false, reason: 'closed' }, { status: 410 });
+
   const parsed = fairResponseSchema.safeParse(await request.json().catch(() => null));
 
   if (!parsed.success) {
