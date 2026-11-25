@@ -33,7 +33,8 @@ const sheets = {
   tab: 'Encuesta',
   account: { clientEmail: 'test@example.com', privateKey: 'test-key' },
 };
-const createdAt = '2026-11-25T05:00:00+00:00';
+// Como la devuelve Supabase: UTC y con microsegundos.
+const createdAt = '2026-11-25T17:15:37.873199+00:00';
 const person = {
   first_name: 'Corredora',
   last_name: 'De Prueba',
@@ -225,7 +226,7 @@ describe('copia a la hoja de la encuesta', () => {
     await runCopy();
     expect(appendRowOnce).toHaveBeenCalledWith(sheets, SURVEY_HEADERS, [
       payload.submissionId,
-      createdAt,
+      '2026-11-25 12:15:37',
       'Corredora',
       'De Prueba',
       '1144135260',
