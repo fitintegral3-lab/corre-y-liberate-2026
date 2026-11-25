@@ -1,4 +1,4 @@
-import { Container, LogoMarquee } from '@/components/ui';
+import { Container, CtaLink, LogoMarquee } from '@/components/ui';
 import { sponsors, sponsorsSection } from '@/content';
 
 export function SponsorsSection() {
@@ -18,6 +18,15 @@ export function SponsorsSection() {
 
       {/* La tira va fuera del Container para cruzar la pantalla entera. */}
       <LogoMarquee items={sponsors} />
+
+      <Container className="mt-10 px-4 sm:px-8">
+        <p className="text-sm text-neutral-700 sm:text-base">
+          ¿Quieres apoyar la carrera como patrocinador, donante o aliado?
+        </p>
+        <CtaLink href="/sumate" variant="brandDeep" size="md" className="mt-4">
+          Súmate
+        </CtaLink>
+      </Container>
     </section>
   );
 }

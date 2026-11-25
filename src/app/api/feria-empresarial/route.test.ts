@@ -6,6 +6,8 @@ import { appendFairResponse } from '@/lib/sheets/append-fair';
 import { fairSheetsConfig } from '@/lib/sheets/fair-config';
 
 vi.mock('next/server', () => ({ after: vi.fn() }));
+// El formulario está cerrado; estas pruebas cuidan el guardado para cuando se reabra.
+vi.mock('@/content/entrepreneur-fair', () => ({ entrepreneurFair: { open: true } }));
 vi.mock('@/lib/sheets/append-fair', () => ({ appendFairResponse: vi.fn() }));
 vi.mock('@/lib/sheets/fair-config', () => ({ fairSheetsConfig: vi.fn() }));
 
