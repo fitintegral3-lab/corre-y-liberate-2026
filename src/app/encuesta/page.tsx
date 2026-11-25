@@ -22,7 +22,7 @@ export default function EncuestaPage() {
     <main className="min-h-screen bg-stone-50 px-4 py-8 sm:px-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <Link
-          href="/#encuesta"
+          href="/"
           className="inline-flex min-h-11 items-center gap-2 font-athletic-bold text-sm text-neutral-700 hover:text-orange-800"
         >
           <ArrowLeft size={18} aria-hidden="true" />

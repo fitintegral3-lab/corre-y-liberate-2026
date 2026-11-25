@@ -1,19 +1,6 @@
-import { SiteFooter, SiteHeader, WhatsAppFab } from '@/components/layout';
-import {
-  AwardsSection,
-  EditionSection,
-  HeroSection,
-  PricingSection,
-  PurposeSection,
-  RegistrationBanner,
-  RegistrationStepsSection,
-  RunnerKitSection,
-  RunningClubsSection,
-  SponsorsSection,
-  VenueSection,
-} from '@/features';
-import { FairSection } from '@/features/entrepreneur-fair/FairSection';
-import { SurveySection } from '@/features/experience-survey/SurveySection';
+import { offSeason } from '@/content';
+import { EventLanding } from '@/features/landing/EventLanding';
+import { OffSeasonHome } from '@/features/off-season/OffSeasonHome';
 import { buildEventJsonLd, buildOrganizationJsonLd } from '@/lib/seo/json-ld';
 
 /**
@@ -37,36 +24,20 @@ function serializeJsonLd(data: unknown): string {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white font-body text-ink selection:bg-brand-orange selection:text-white">
-      <SiteHeader />
+    <>
+      {offSeason.active ? <OffSeasonHome /> : <EventLanding />}
 
-      <main>
-        <HeroSection />
-        <RegistrationBanner />
-        <SurveySection />
-        <FairSection />
-        <AwardsSection />
-        <EditionSection />
-        <PricingSection />
-        <RegistrationStepsSection />
-        <RunnerKitSection />
-        <VenueSection />
-        <SponsorsSection />
-        <RunningClubsSection />
-        <PurposeSection />
-      </main>
-
-      <SiteFooter />
-      <WhatsAppFab />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildEventJsonLd()) }}
-      />
+      {/* Entre ediciones no hay carrera que anunciar: solo queda la organización. */}
+      {!offSeason.active && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildEventJsonLd()) }}
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildOrganizationJsonLd()) }}
       />
-    </div>
+    </>
   );
 }

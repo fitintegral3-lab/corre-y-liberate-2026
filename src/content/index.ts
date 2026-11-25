@@ -19,6 +19,7 @@ export {
   heroSection,
 } from '@/content/event';
 export { runnerKitItems, runnerKitSection } from '@/content/kit';
+export { offSeason } from '@/content/off-season';
 export { homeAnchor, navLinks } from '@/content/navigation';
 export { presalePhases, pricingSection } from '@/content/pricing';
 export {
