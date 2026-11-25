@@ -8,19 +8,25 @@ export const offSeason = {
   eyebrow: 'Gracias por correr con nosotros en 2026',
   title: 'En preparativos para Corre y Libérate 2027',
   intro:
-    'Estamos preparando la próxima edición. Mientras tanto, cuéntanos cómo te fue, descarga las fotos y súmate al proyecto.',
+    'Estamos preparando la próxima edición. Mientras tanto, consulta tus resultados, descarga las fotos, cuéntanos cómo te fue y súmate al proyecto.',
   links: [
     {
-      id: 'encuesta',
-      title: 'Cuéntanos cómo te fue',
-      description: 'Responde la encuesta de experiencia 2026. Toma 2 minutos.',
-      href: '/encuesta',
+      id: 'resultados',
+      title: 'Resultados 2026',
+      description: 'Consulta los tiempos y posiciones por categoría.',
+      href: 'https://cronometrajeinstantaneo.com/resultados/corre-y-liberate/categorias?r=1',
     },
     {
       id: 'fotos',
       title: 'Fotos y videos 2026',
       description: 'Descarga las fotos y los videos de la carrera desde Google Drive.',
       href: 'https://drive.google.com/drive/folders/1wAN-aUvih1MPXtcATfC3Z0wTbZcT39Ub',
+    },
+    {
+      id: 'encuesta',
+      title: 'Cuéntanos cómo te fue',
+      description: 'Responde la encuesta de experiencia 2026. Toma 2 minutos.',
+      href: '/encuesta',
     },
     {
       id: 'sumate',

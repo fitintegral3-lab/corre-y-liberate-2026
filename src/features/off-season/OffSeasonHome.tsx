@@ -1,4 +1,4 @@
-import { ArrowUpRight, Camera, HeartHandshake, MessageSquareHeart } from 'lucide-react';
+import { ArrowUpRight, Camera, HeartHandshake, MessageSquareHeart, Trophy } from 'lucide-react';
 import Image from 'next/image';
 
 import { InstagramIcon, WhatsAppIcon } from '@/components/ui/icons/SocialIcons';
@@ -8,6 +8,7 @@ import { event, offSeason } from '@/content';
 import type { LucideIcon } from 'lucide-react';
 
 const icons: Record<(typeof offSeason.links)[number]['id'], LucideIcon> = {
+  resultados: Trophy,
   encuesta: MessageSquareHeart,
   fotos: Camera,
   sumate: HeartHandshake,
