@@ -41,6 +41,7 @@ igual y solo no se copia o no se envía el correo.
 | `GOOGLE_SHEETS_SPREADSHEET_ID`       | No      | Planilla de inscripciones                        |
 | `GOOGLE_SHEETS_TAB`                  | No      | Pestaña (por defecto `Inscripciones`)            |
 | `FAIR_SHEETS_SPREADSHEET_ID`         | No      | Libro privado de la Feria Empresarial            |
+| `SURVEY_SHEETS_SPREADSHEET_ID`       | No      | Libro de la encuesta de experiencia              |
 | `GMAIL_USER`                         | No      | Cuenta que envía los correos                     |
 | `GMAIL_APP_PASSWORD`                 | Sí      | Contraseña de aplicación de esa cuenta           |
 | `EMAIL_FROM_NAME`                    | No      | Nombre del remitente                             |
@@ -67,6 +68,11 @@ inscripción, y una vez por inscripción. Las respuestas van a la tabla
 `experience_survey_responses` del mismo Supabase. Aplica antes la migración
 `supabase/migrations/20261125000000_experience_survey.sql`: sin la tabla, el
 formulario responde que no pudo guardar.
+Cada respuesta guardada se copia después, con nombre, cédula, celular y
+distancia de la inscripción, a la pestaña `Encuesta` del libro de
+`SURVEY_SHEETS_SPREADSHEET_ID` (o del objeto `config/encuesta.txt` del bucket).
+Con la pestaña vacía, la primera copia escribe los encabezados. La cuenta de
+servicio necesita permiso de edición en ese libro.
 
 `NEXT_PUBLIC_SITE_URL` alimenta `metadataBase`, el `sitemap.xml`, el
 `robots.txt` y las URLs absolutas de Open Graph. Si queda mal, las vistas

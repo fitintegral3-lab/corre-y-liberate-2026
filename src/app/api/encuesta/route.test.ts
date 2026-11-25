@@ -1,8 +1,18 @@
+import { after } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { POST as checkAccess } from '@/app/api/encuesta/acceso/route';
 import { POST } from '@/app/api/encuesta/route';
 import { event } from '@/content';
+import { SURVEY_HEADERS } from '@/features/experience-survey/sheet-row';
+import { appendRowOnce } from '@/lib/sheets/append-once';
+import { surveySheetsConfig } from '@/lib/sheets/survey-config';
+
+// `after` solo corre dentro de una petición de Next: se captura la tarea para ejecutarla a mano.
+vi.mock('next/server', () => ({ after: vi.fn() }));
+// La copia a Sheets tiene su propia prueba (append-once.test.ts); acá se mira qué fila pide.
+vi.mock('@/lib/sheets/append-once', () => ({ appendRowOnce: vi.fn() }));
+vi.mock('@/lib/sheets/survey-config', () => ({ surveySheetsConfig: vi.fn() }));
 
 const payload = {
   submissionId: '8d3c1f0e-6a2b-4c5d-9e7f-0a1b2c3d4e5f',
@@ -17,6 +27,28 @@ const payload = {
   returnIntent: 'Probablemente sí',
   recommend: '9',
 };
+
+const sheets = {
+  spreadsheetId: 'test-sheet',
+  tab: 'Encuesta',
+  account: { clientEmail: 'test@example.com', privateKey: 'test-key' },
+};
+const createdAt = '2026-11-25T05:00:00+00:00';
+const person = {
+  first_name: 'Corredora',
+  last_name: 'De Prueba',
+  cedula: '1144135260',
+  phone: '3001234567',
+  email: 'corredora@example.com',
+  distance_id: '10k',
+  category: 'Libre',
+};
+
+async function runCopy() {
+  const copy = vi.mocked(after).mock.calls[0][0];
+  if (typeof copy !== 'function') throw new Error('Se esperaba una tarea de copia');
+  await copy();
+}
 
 const first = '11111111-1111-4111-8111-111111111111';
 const second = '22222222-2222-4222-8222-222222222222';
@@ -65,17 +97,21 @@ beforeEach(() => {
   db.insertError = null;
   db.fetch.mockImplementation(async (url, init) => {
     const path = new URL(String(url)).pathname;
-    if (path.endsWith('/registrations')) return Response.json(db.registrations);
+    if (path.endsWith('/registrations')) {
+      const wantsPerson = new URL(String(url)).searchParams.get('select')?.includes('first_name');
+      return Response.json(wantsPerson ? person : db.registrations);
+    }
     if (init?.method === 'POST') {
       return db.insertError
         ? Response.json({ ...db.insertError, message: 'error' }, { status: 409 })
-        : new Response(null, { status: 201 });
+        : Response.json([{ created_at: createdAt }], { status: 201 });
     }
     return Response.json(db.responses);
   });
   vi.stubEnv('SUPABASE_URL', 'https://testproject.supabase.co');
   vi.stubEnv('SUPABASE_SECRET_KEY', 'sb_secret_test');
   vi.stubGlobal('fetch', db.fetch);
+  vi.mocked(surveySheetsConfig).mockResolvedValue(sheets);
 });
 
 afterEach(() => {
@@ -175,6 +211,55 @@ describe('encuesta de experiencia', () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       expect((await POST(request(payload))).status).toBe(503);
+    } finally {
+      log.mockRestore();
+    }
+  });
+});
+
+describe('copia a la hoja de la encuesta', () => {
+  it('después de responder agrega la fila con la persona inscrita y sus respuestas', async () => {
+    expect((await POST(request(payload))).status).toBe(201);
+    expect(appendRowOnce).not.toHaveBeenCalled();
+
+    await runCopy();
+    expect(appendRowOnce).toHaveBeenCalledWith(sheets, SURVEY_HEADERS, [
+      payload.submissionId,
+      createdAt,
+      'Corredora',
+      'De Prueba',
+      '1144135260',
+      '3001234567',
+      'corredora@example.com',
+      '10k',
+      'Libre',
+      5,
+      4,
+      3,
+      2,
+      1,
+      payload.likedMost,
+      payload.improve,
+      'Probablemente sí',
+      9,
+    ]);
+  });
+
+  it('no programa otra copia para un reintento ni para quien ya respondió', async () => {
+    db.responses = [{ registration_id: first, submission_id: payload.submissionId }];
+    expect((await POST(request(payload))).status).toBe(200);
+    db.responses = [{ registration_id: first, submission_id: crypto.randomUUID() }];
+    expect((await POST(request(payload))).status).toBe(409);
+    expect(after).not.toHaveBeenCalled();
+  });
+
+  it('si Sheets falla, la respuesta ya quedó guardada y solo se registra el error', async () => {
+    vi.mocked(appendRowOnce).mockRejectedValueOnce(new Error('Sheets no disponible'));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect((await POST(request(payload))).status).toBe(201);
+      await runCopy();
+      expect(log).toHaveBeenCalled();
     } finally {
       log.mockRestore();
     }

@@ -2,6 +2,7 @@ import { event } from '@/content';
 import { cedulaSchema, mobileSchema } from '@/domain/registration/schema';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
+import type { SurveyRespondent } from '@/features/experience-survey/sheet-row';
 import type { SupabaseConfig } from '@/lib/supabase/config';
 
 export type SurveyAccess =
@@ -57,4 +58,18 @@ export async function surveyAccess(
   const taken = new Set(answered.map((row) => row.registration_id));
   const pending = ids.find((id) => !taken.has(id));
   return pending ? { status: 'eligible', registrationId: pending } : { status: 'answered' };
+}
+
+/** Datos de la inscripción que acompañan la respuesta en la hoja. */
+export async function surveyRespondent(
+  config: SupabaseConfig,
+  registrationId: string,
+): Promise<SurveyRespondent> {
+  const { data, error } = await supabaseAdmin(config)
+    .from('registrations')
+    .select('first_name, last_name, cedula, phone, email, distance_id, category')
+    .eq('id', registrationId)
+    .single<SurveyRespondent>();
+  if (error) throw new Error(`inscripción: ${error.code}`);
+  return data;
 }
