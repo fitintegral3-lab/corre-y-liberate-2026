@@ -12,8 +12,11 @@ describe('inicio entre ediciones', () => {
     expect(offSeason.active).toBe(true);
   });
 
-  it('anuncia la preparación de 2027 con la encuesta, las fotos y Súmate', () => {
+  it('anuncia la preparación de 2027 con resultados, fotos, encuesta y Súmate', () => {
     expect(html).toContain('En preparativos para Corre y Libérate 2027');
+    expect(html).toContain(
+      'href="https://cronometrajeinstantaneo.com/resultados/corre-y-liberate/categorias?r=1"',
+    );
     expect(html).toContain('href="/encuesta"');
     expect(html).toContain('href="/sumate"');
     expect(html).toContain(

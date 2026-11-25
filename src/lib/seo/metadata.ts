@@ -1,4 +1,11 @@
-import { landingDistances as distances, editionName, event, eventName, venue } from '@/content';
+import {
+  landingDistances as distances,
+  editionName,
+  event,
+  eventName,
+  offSeason,
+  venue,
+} from '@/content';
 import { siteConfig } from '@/config/site';
 import { isProduction } from '@/lib/env';
 import { formatWeekdayLongDate } from '@/lib/format';
@@ -25,12 +32,19 @@ function humanJoin(values: readonly string[]): string {
 
 export const siteTitle = `${eventName} — ${editionName} Oficial | ${event.organizer.name} ${venue.city}`;
 
-export const siteDescription = [
+const raceDescription = [
   `Carrera deportiva y social en ${venue.city}, ${venue.region}.`,
   `${formatWeekdayLongDate(event.date)}.`,
   `Distancias ${humanJoin(distanceList)}.`,
   '¡Asegura tu cupo al mejor precio!',
 ].join(' ');
+
+/** Entre ediciones, lo que se comparte anuncia la próxima y no invita a inscribirse. */
+const offSeasonSummary = `${offSeason.eyebrow}. ${offSeason.title}.`;
+
+export const siteDescription = offSeason.active
+  ? `${offSeason.title}. ${offSeason.intro}`
+  : raceDescription;
 
 export function buildSiteMetadata(): Metadata {
   return {
@@ -67,12 +81,16 @@ export function buildSiteMetadata(): Metadata {
       locale: siteConfig.locale,
       url: siteConfig.url,
       title: `${eventName} — ${editionName} Oficial`,
-      description: `${event.claim}. Inscríbete ya para la carrera atlética de ${venue.city}.`,
+      description: offSeason.active
+        ? offSeasonSummary
+        : `${event.claim}. Inscríbete ya para la carrera atlética de ${venue.city}.`,
     },
     twitter: {
       card: 'summary_large_image',
       title: `${eventName} — ${editionName}`,
-      description: `${event.claim}. ${formatWeekdayLongDate(event.date)} en ${venue.city}.`,
+      description: offSeason.active
+        ? offSeasonSummary
+        : `${event.claim}. ${formatWeekdayLongDate(event.date)} en ${venue.city}.`,
     },
     // Las previews de `development` no deben aparecer en Google compitiendo
     // con el sitio real por las mismas busquedas.
