@@ -13,6 +13,7 @@ import {
   VenueSection,
 } from '@/features';
 import { FairSection } from '@/features/entrepreneur-fair/FairSection';
+import { SurveySection } from '@/features/experience-survey/SurveySection';
 import { buildEventJsonLd, buildOrganizationJsonLd } from '@/lib/seo/json-ld';
 
 /**
@@ -42,6 +43,7 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <RegistrationBanner />
+        <SurveySection />
         <FairSection />
         <AwardsSection />
         <EditionSection />

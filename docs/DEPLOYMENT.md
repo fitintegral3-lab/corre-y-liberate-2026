@@ -34,7 +34,7 @@ igual y solo no se copia o no se envía el correo.
 | Variable                             | Secreta | Para qué                                         |
 | ------------------------------------ | ------- | ------------------------------------------------ |
 | `SUPABASE_URL`                       | No      | Proyecto de Supabase                             |
-| `SUPABASE_SECRET_KEY`                | Sí      | Inscripciones y Feria Empresarial                |
+| `SUPABASE_SECRET_KEY`                | Sí      | Inscripciones, Feria Empresarial y encuesta      |
 | `GCS_RECEIPTS_BUCKET`                | No      | Bucket de comprobantes                           |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | No      | Cuenta de servicio (planilla y bucket)           |
 | `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Sí      | Llave de la cuenta de servicio                   |
@@ -60,6 +60,13 @@ La copia a Google Sheets es opcional y se hace después de responder. La cuenta
 de servicio necesita permiso de edición en la pestaña `Feria Empresarial`.
 Si no se define `FAIR_SHEETS_SPREADSHEET_ID`, el servidor lee el ID del objeto
 `config/feria-empresarial.txt` en el bucket privado de comprobantes.
+
+`/encuesta` es la encuesta de experiencia. Solo la responde quien está en
+`registrations` de la edición actual, con la cédula o el celular de su
+inscripción, y una vez por inscripción. Las respuestas van a la tabla
+`experience_survey_responses` del mismo Supabase. Aplica antes la migración
+`supabase/migrations/20261125000000_experience_survey.sql`: sin la tabla, el
+formulario responde que no pudo guardar.
 
 `NEXT_PUBLIC_SITE_URL` alimenta `metadataBase`, el `sitemap.xml`, el
 `robots.txt` y las URLs absolutas de Open Graph. Si queda mal, las vistas
