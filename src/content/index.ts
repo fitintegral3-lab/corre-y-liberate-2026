@@ -19,6 +19,7 @@ export {
   heroSection,
 } from '@/content/event';
 export { runnerKitItems, runnerKitSection } from '@/content/kit';
+export { offSeason } from '@/content/off-season';
 export { homeAnchor, navLinks } from '@/content/navigation';
 export { presalePhases, pricingSection } from '@/content/pricing';
 export {
@@ -31,4 +32,12 @@ export { purposePillars, purposeSection } from '@/content/purpose';
 export { registrationErrors, registrationFormCopy, terms } from '@/content/registration-form';
 export type { RegistrationErrorReason } from '@/content/registration-form';
 export { sponsors, sponsorsSection } from '@/content/sponsors';
+export {
+  allyContributions,
+  allyMessage,
+  supportOptions,
+  supportPage,
+  whatsappLink,
+} from '@/content/support';
+export type { AllyContribution } from '@/content/support';
 export { venue, venueFullAddress, venueSection } from '@/content/venue';
